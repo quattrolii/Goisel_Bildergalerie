@@ -65,7 +65,7 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <button id="go" style="margin-top:8px">Ein Knall in Zeitlupe</button>
 </fieldset>
 <fieldset><legend>4 Knalle hintereinander</legend>
-<label>Drehung nach jeder Seite <span class="v" id="vTH"></span></label><input type="range" id="THs" min="80" max="160" step="5" value="120">
+<div class="hint" id="thinfo" style="margin-top:0"></div>
 <div class="hint" style="margin-top:0">Knall auf Knall in einem Zug, von oben gesehen: Der Knaller dreht sich nach links und rechts, der Stecken mit Steckenhaltung und Drehtempo von oben.</div><button id="go4" style="margin-top:8px">4 Knalle!</button>
 </fieldset>
 <div class="row"><button id="slow">Nochmal abspielen</button></div>
@@ -97,7 +97,7 @@ function labels(){
   $('rowRund').style.display=$('ts').value==='rund'?'':'none';$('rowBand').style.display=$('ts').value==='band'?'':'none';
   $('vZ').textContent=fmt(+$('Z').value,1)+' m/s';
   $('vN').textContent=fmt(+$('NW').value*100,0)+' cm';
-  $('vTH').textContent='± '+$('THs').value+'°';
+  {const q={Rk:+$('RK').value,nStr:+$('NS').value,strick:$('SG').value};$('thinfo').innerHTML='Drehung nach jeder Seite: <b>± '+Math.round(autoTH(q))+'°</b>, wie ein Knaller an die Goisel angepasst'+(q.Rk<1?'. <b>Hinweis:</b> Bei steiler Haltung läuft die Goisel in Schleifen über den Kopf; das bildet diese Rechnung von oben nicht ab.':'');}
 }
 document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',labels));
 
@@ -415,12 +415,18 @@ function simulateTop(p){
   const csound=331.3+0.606*p.T, rho=1.293*273.15/(273.15+p.T), G=0, DF=p.dragF??1;
   const PX=0, PY=0, Rk=p.Rk||1.4, TH=(p.TH||100)*Math.PI/180;
   const W=(p.W||500)*Math.PI/180, tauR=p.tauR||0.05, alpha=2*W/tauR, NH=p.NH||5;
-  let th=-TH, om=0, dir=1, half=0, revving=false, revDir=1;const S0=p.S0??0.25;
+  let th=-(TH+(p.run||0)*Math.PI/180), om=0, dir=1, half=0, revving=false, revDir=1;const S0=p.S0??0.25;
+  const AUTO=!!p.auto, THmin=(p.THmin||60)*Math.PI/180, THmax=(p.THmax||160)*Math.PI/180, LAG=(p.lag??20)*Math.PI/180;
   const hpos=()=>[PX+Rk*Math.sin(th),PY+Rk*Math.cos(th)];
   const x=new Float64Array(N), y=new Float64Array(N), vx=new Float64Array(N), vy=new Float64Array(N);
   const fx=new Float64Array(N), fy=new Float64Array(N), ox=new Float64Array(N), oy=new Float64Array(N);
   // Start: Goisel liegt nach dem letzten Knall gestreckt nach links (in Ruhe)
-  {const h=hpos(),ex=Math.sin(th),ey=Math.cos(th);for(let i=0;i<N;i++){x[i]=h[0]+ex*s[i];y[i]=h[1]+ey*s[i];}}
+  // Start: Goisel liegt gerade, je nach p.start nach aussen (radial), hinter der Spitze (tan) oder schraeg dazwischen (mix)
+  {const h=hpos(),rx=Math.sin(th),ry=Math.cos(th),tx=-Math.cos(th),ty=Math.sin(th);const st=p.start||'radial';
+   let ex=rx,ey=ry;if(st==='tan'){ex=tx;ey=ty;}else if(st==='mix'){ex=(rx+tx)/Math.SQRT2;ey=(ry+ty)/Math.SQRT2;}
+   for(let i=0;i<N;i++){x[i]=h[0]+ex*s[i];y[i]=h[1]+ey*s[i];}
+   // spin: die gerade Goisel dreht am Anfang schon mit dem Stecken mit (ruhige Laufbahn), Winkeltempo om0
+   if(p.spin){const om0=p.spin*W;om=om0;for(let i=0;i<N;i++){vx[i]=om0*y[i];vy[i]=-om0*x[i];}}}
   const rest=new Float64Array(N-1).fill(ds);
   function energy(){let k=0,u=0,gp=0;for(let i=1;i<N;i++){k+=0.5*m[i]*(vx[i]*vx[i]+vy[i]*vy[i]);gp+=m[i]*G*y[i];}
     for(let i=1;i<N-1;i++){const lx=x[i-1]-2*x[i]+x[i+1],ly=y[i-1]-2*y[i]+y[i+1];u+=0.5*B[i]*(lx*lx+ly*ly)/(ds*ds*ds);}return [k,u+gp];}
@@ -445,7 +451,12 @@ function simulateTop(p){
     // dann ruhig in den neuen Bogen (Nachfuehren und zugleich Schwung fuer den naechsten Knall).
     if(revving){om-=revDir*(1+S0)*W/tauR*dt;if(om*revDir<=-S0*W){om=-revDir*S0*W;revving=false;}}
     else{const q=Math.min(1,Math.max(0,(dir>0?th+TH:TH-th)/(2*TH)));om=dir*W*(S0+(1-S0)*q);
-      if((dir>0&&th>=TH)||(dir<0&&th<=-TH)){revving=true;revDir=dir;dir=-dir;owner=HS[HS.length-1];owner.tRev=t;half++;if(half>=NH){tEnd=t+0.35;}else newHalf();}}
+      // Umkehr: fester Winkel TH, oder (auto) wie ein Knaller, sobald die Goisel-Mitte bis auf LAG zum Stecken aufgeschlossen
+      // hat (dann ist sie ganz herumgekommen und schwingt nicht zu weit ueber), in den Grenzen THmin..THmax
+      let rev=(dir>0&&th>=TH)||(dir<0&&th<=-TH);
+      if(AUTO){const kM=Math.round(0.6*(N-1));let d=Math.atan2(x[kM],y[kM])-th;d=Math.atan2(Math.sin(d),Math.cos(d))*dir;
+        const a=th*dir;rev=(a>=THmin&&d>=-LAG)||a>=THmax;}
+      if(rev){revving=true;revDir=dir;dir=-dir;owner=HS[HS.length-1];owner.tRev=t;half++;if(half>=NH){tEnd=t+0.35;}else newHalf();}}
     th+=om*dt;
     fx.fill(0);fy.fill(0);
     let pInt=0,pDrag=0,Ex=0,Ey=0;
@@ -513,8 +524,12 @@ function simulateTop(p){
 // den Bogen (Schwung zur Seite), am Ende kehrt er in kurzer Zeit um (Zurueckziehen); die Goisel schwingt ueber und wird
 // mit dem neuen Bogen (Nachfuehren) zur anderen Seite gezogen. Alles in einem Zug gerechnet, ohne Schwerkraft.
 let S=null,MODE='one',MIR=false,LBL='';
+// Drehwinkel wie ein Knaller an die Goisel angepasst: Die Goisel-Mitte (Radius Stecken-Spitze + halbe Goisellaenge) legt je
+// Bogen etwa 5,8 m zurueck (abgestimmt an der 4-Strick-Goisel, flach: +-120 Grad). Laengere Goisel -> kleinerer Winkel.
+function autoTH(p){const G=goiselGeom(p);const rM=(p.Rk||1.4)+G.Lg/2;return Math.max(70,Math.min(170,(p.arcM||5.76)/rM*180/Math.PI));}
 function simulateSeries(p){
-  const r=simulateTop({...p,NH:5,TH:p.THs||120,W:p.Ws||p.W,Rk:p.Rk});
+  // Start: gerade Goisel, die vom Ausholen noch nachschwingt (gegen die erste Drehrichtung), wie nach einem Knall
+  const r=simulateTop({...p,NH:4,TH:p.THs||autoTH(p),W:p.Ws||p.W,Rk:p.Rk,spin:p.spin??-0.5});
   // Knall der naechstgelegenen Umkehr zuordnen (Fenster bis zur Mitte zwischen zwei Umkehrpunkten)
   const rev=r.ST.map(q=>q.tRev), n=rev.length, out=[];
   for(let j=0;j<n;j++){
@@ -545,7 +560,7 @@ function drawSeries(k){
   g.fillStyle='#c21807';g.beginPath();g.arc(X(f[0][n-1]),Y(f[1][n-1]),4,0,7);g.fill();
   S.K.forEach((q,j)=>{const d=t-q.tv;if(q.knall&&d>=0&&d<0.06){const kk=Math.min(S.frames.length-1,Math.round(q.tv/2.5e-3)),ff=S.frames[kk],xx=X(ff[0][n-1]),yy=Y(ff[1][n-1]);
     g.strokeStyle='rgba(194,24,7,'+Math.max(0,1-d*16)+')';g.lineWidth=2;for(let r=1;r<4;r++){g.beginPath();g.arc(xx,yy,r*10*(1+d*70),0,7);g.stroke();}
-    g.fillStyle='#c21807';g.font='bold 16px Arial';g.fillText(j===0?'Anschwung':'Knall '+j+'!',xx+(xx>W/2?-90:12),yy-12);}});
+    g.fillStyle='#c21807';g.font='bold 16px Arial';g.fillText('Knall '+(j+1)+'!',xx+(xx>W/2?-90:12),yy-12);}});
   g.fillStyle='#333';g.font='13px Arial';g.fillText('t = '+fmt(t,2)+' s',W-90,18);
   g.fillStyle='#999';g.font='12px Arial';g.fillText('von oben gesehen, Knaller in der Mitte',10,H-8);
 }
@@ -555,11 +570,11 @@ function playSeries(){
   const step=()=>{drawSeries(k);const t=S.ftimes[k];k+=near(t)?1:2;if(k<S.frames.length)anim=requestAnimationFrame(()=>setTimeout(step,near(t)?45:16));};step();
 }
 function showSeries(){
-  const K=S.K.slice(1), nk=K.filter(q=>q.knall).length;
+  const K=S.K, nk=K.filter(q=>q.knall).length;
   const posW=K.reduce((a,q)=>a+q.Wp,0)/K.length, negW=-K.reduce((a,q)=>a+q.Wn,0)/K.length;
   const Fbig=Math.max(...K.map(q=>q.Fmax)), Pm=posW/S.Tc, Pmus=(4*posW+0.8*negW)/S.Tc;
   let h='<div class="res">';
-  h+=card('Knalle',nk+' von '+K.length+'<br><small>nach einem Anschwung aus der Ruhe</small>',nk?'knall':'');
+  h+=card('Knalle',nk+' von '+K.length+'<br><small>Drehung ± '+Math.round(S.TH*180/Math.PI)+'°</small>',nk?'knall':'');
   h+=card('Takt (ergibt sich)',fmt(S.Tc,2)+' s je Knall<br><small>'+fmt(30/S.Tc,0)+' Knalle in 30 s</small>');
   h+=card('Arbeit je Schlag',fmt(posW,0)+' J<br><small>zurück in die Hand '+fmt(negW,0)+' J</small>');
   h+=card('Größte Kraft an der Hand',fmt(Fbig,0)+' N<br><small>≈ '+fmt(Fbig/9.81,0)+' kg</small>');
@@ -568,14 +583,14 @@ function showSeries(){
   const td='style="padding:3px 4px"';
   h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px"><tr style="background:#f3e7dc"><th '+td+' align="left">Schlag</th><th '+td+'>Besen</th><th '+td+'>Pegel 1 m</th><th '+td+'>Knall zur Umkehr</th><th '+td+'>größte Kraft</th><th '+td+'>Arbeit rein</th><th '+td+'>zurück in die Hand</th></tr>';
   S.K.forEach((q,j)=>{const A=acoustics({...S,vBesen:q.vBesen});
-    h+='<tr style="border-top:1px solid #e3d6c8;text-align:center;'+(j===0?'color:#888':'')+'"><td '+td+' align="left">'+(j===0?'Anschwung':j+'. Knall')+' nach '+q.side+'</td><td '+td+' style="color:'+(q.knall?'#c21807':'#666')+'"><b>'+fmt(q.vBesen,0)+' m/s</b> (Mach '+fmt(q.vBesen/S.csound,2)+')</td><td '+td+'>'+(A?fmt(A.n.L,0)+' dB':'kein Knall')+'</td><td '+td+'>'+(q.tv>=q.tRev?'+':'−')+fmt(Math.abs(q.tv-q.tRev)*1000,0)+' ms</td><td '+td+'>'+fmt(q.Fmax,0)+' N</td><td '+td+'>'+fmt(q.Wp,0)+' J</td><td '+td+'>'+fmt(-q.Wn,0)+' J</td></tr>';});
+    h+='<tr style="border-top:1px solid #e3d6c8;text-align:center"><td '+td+' align="left">'+(j+1)+'. Knall nach '+q.side+'</td><td '+td+' style="color:'+(q.knall?'#c21807':'#666')+'"><b>'+fmt(q.vBesen,0)+' m/s</b> (Mach '+fmt(q.vBesen/S.csound,2)+')</td><td '+td+'>'+(A?fmt(A.n.L,0)+' dB':'kein Knall')+'</td><td '+td+'>'+(q.tv>=q.tRev?'+':'−')+fmt(Math.abs(q.tv-q.tRev)*1000,0)+' ms</td><td '+td+'>'+fmt(q.Fmax,0)+' N</td><td '+td+'>'+fmt(q.Wp,0)+' J</td><td '+td+'>'+fmt(-q.Wn,0)+' J</td></tr>';});
   h+='</table>';
   const parts=[['Luftwiderstand',S.Wdrag,'#4a90c2'],['innere Reibung',S.Wint,'#e07b00'],['zurück in die Hand',-S.Wneg,'#999'],['noch in der Goisel',S.Enow,'#7a0f04']];
   const tot=parts.reduce((a,q)=>a+Math.max(0,q[1]),0)||1;
   let b='<div class="bar">';for(const q of parts)b+='<div style="width:'+(100*Math.max(0,q[1])/tot)+'%;background:'+q[2]+'" title="'+q[0]+'"></div>';b+='</div><div class="leg">';
   for(const q of parts)b+='<i style="background:'+q[2]+'"></i>'+q[0]+' '+fmt(Math.max(0,q[1]),0)+' J ';
   h+='<div style="margin-top:8px"><b style="color:#7a0f04">Wohin die Arbeit der Hand geht (alle Schläge, '+fmt(S.Wpos,0)+' J)</b>'+b+'</div></div>';
-  h+='<div class="hint">Gerechnet in einem Zug, von oben gesehen: Der Knaller steht in der Mitte und dreht sich nach links und rechts. Die Stecken-Spitze läuft dabei auf einem Kreisbogen um ihn herum (gestrichelt), flach gehalten weit außen, steil gehalten nah am Körper. Über den Bogen wird die Drehung schneller (Schwung zur Seite), am Ende kehrt er schlagartig um (Zurückziehen). Die Goisel schwingt über, die Schlaufe läuft zur Spitze und es knallt kurz vor oder nach der Umkehr; der neue Bogen führt nach und zieht die Goisel zur anderen Seite. Der erste Schlag kommt aus der Ruhe (Anschwung). Ohne Schwerkraft gerechnet, die Goisel läuft flach. Wie beim Einzelknall ein vereinfachtes Modell: Die Werte schwanken von Schlag zu Schlag, so wie bei einem echten Knaller auch nicht jeder Knall gleich gelingt.</div>';
+  h+='<div class="hint">Gerechnet in einem Zug, von oben gesehen: Der Knaller steht in der Mitte und dreht sich nach links und rechts. Die Stecken-Spitze läuft dabei auf einem Kreisbogen um ihn herum (gestrichelt), flach gehalten weit außen, steil gehalten nah am Körper. Über den Bogen wird die Drehung schneller (Schwung zur Seite), am Ende kehrt er schlagartig um (Zurückziehen). Die Goisel schwingt über, die Schlaufe läuft zur Spitze und es knallt kurz vor oder nach der Umkehr; der neue Bogen führt nach und zieht die Goisel zur anderen Seite. Der Drehwinkel ist an die Goisel angepasst, wie es ein Knaller auch macht: Die Mitte der Goisel legt je Bogen etwa gleich viel Weg zurück, eine längere Goisel dreht also etwas weniger weit und schwingt nicht zu stark über. Am Anfang liegt die Goisel gerade und schwingt vom Ausholen noch nach, so klappt schon der erste Knall. Ohne Schwerkraft gerechnet, die Goisel läuft flach. Wie beim Einzelknall ein vereinfachtes Modell: Die Werte schwanken von Schlag zu Schlag, so wie bei einem echten Knaller auch nicht jeder Knall gleich gelingt.</div>';
   $('serbox').innerHTML=h;
   const c=$('fc'),q=c.getContext('2d'),W=c.width,H=c.height;q.clearRect(0,0,W,H);q.font='12px Arial';
   const T=S.tEnd,x0=50,x1=W-10,y0=15,y1=H-30,fm=Math.max(50,Math.max(...S.K.map(q=>q.Fmax))*1.1);
@@ -585,14 +600,14 @@ function showSeries(){
   for(let s=0;s<=T+1e-9;s+=0.5)q.fillText(fmt(s,1)+' s',X(s)-10,y1+16);
   S.K.forEach(r=>{q.fillStyle='rgba(0,0,0,0.05)';q.fillRect(X(r.tRev)-2,y0,4,y1-y0);});
   q.strokeStyle='#7a0f04';q.lineWidth=1.5;q.beginPath();S.rec.forEach((r,i)=>{i?q.lineTo(X(r[0]),Y(r[1])):q.moveTo(X(r[0]),Y(r[1]));});q.stroke();
-  S.K.forEach((r,j)=>{q.strokeStyle=r.knall?'#c21807':'#aaa';q.lineWidth=2;q.beginPath();q.moveTo(X(r.tv),y0);q.lineTo(X(r.tv),y1);q.stroke();q.fillStyle=r.knall?'#c21807':'#888';q.fillText(j===0?'Anschwung':(r.knall?'Knall '+j:'kein Knall'),X(r.tv)+3,y0+12);});
+  S.K.forEach((r,j)=>{q.strokeStyle=r.knall?'#c21807':'#aaa';q.lineWidth=2;q.beginPath();q.moveTo(X(r.tv),y0);q.lineTo(X(r.tv),y1);q.stroke();q.fillStyle=r.knall?'#c21807':'#888';q.fillText(r.knall?'Knall '+(j+1):'kein Knall',X(r.tv)+3,y0+12);});
   q.fillStyle='#333';q.fillText('Kraft an der Hand (grau: Umkehr)',x0+4,y1-6);
 }
 function setMode(md){MODE=md;MIR=false;LBL='';cv.height=md==='four'?440:300;for(const id of ['res','ebox','sbox'])$(id).style.display=md==='one'?'':'none';$('serbox').style.display=md==='four'?'':'none';}
 // Schwung aus der Drehung des Knallers (von oben gesehen: Knaller im Mittelpunkt, Stecken-Spitze auf dem Radius Rk). Die gestreckte Goisel dreht mit; ihre Mitte laeuft auf dem Radius
 // Bogen + halbe Goisellaenge und ist dadurch schneller als die Stecken-Spitze. Flach (grosser Radius) gibt mehr Schwung.
 function swing(q){const G=goiselGeom(q),w=q.W*Math.PI/180;return {arc:q.Rk*Math.PI,T:Math.PI/w,vTip:w*q.Rk,V:w*(q.Rk+G.Lg/2),w};}
-function params(){const q={Rk:+$('RK').value,W:+$('W').value,nStr:+$('NS').value,strick:$('SG').value};const sw=swing(q);return {V:sw.V,sweepT:sw.T,vTip:sw.vTip,nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,W:+$('W').value,THs:+$('THs').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,NW:+$('NW').value};}
+function params(){const q={Rk:+$('RK').value,W:+$('W').value,nStr:+$('NS').value,strick:$('SG').value};const sw=swing(q);return {V:sw.V,sweepT:sw.T,vTip:sw.vTip,nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,W:+$('W').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,NW:+$('NW').value};}
 function run4(){
   const p=params();$('go4').disabled=true;$('go4').textContent='rechnet …';
   setTimeout(()=>{S=simulateSeries(p);window.__S=S;setMode('four');showSeries();playSeries();$('go4').disabled=false;$('go4').textContent='4 Knalle!';},30);
