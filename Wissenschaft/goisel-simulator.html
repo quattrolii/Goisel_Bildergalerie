@@ -36,13 +36,17 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <div class="wrap">
 <div>
 <fieldset><legend>Goisel</legend>
-<label>L&auml;nge <span class="v" id="vL"></span></label><input type="range" id="L" min="2" max="6" step="0.25" value="4">
+<label>L&auml;nge (ohne Treibschnur) <span class="v" id="vL"></span></label><input type="range" id="L" min="2" max="6" step="0.25" value="4">
 <label>Gewicht <span class="v" id="vM"></span></label><input type="range" id="M" min="0.2" max="2.5" step="0.05" value="1">
 <label>Verj&uuml;ngung: Querschnitt an der Spitze <span class="v" id="vP"></span></label><input type="range" id="P" min="0" max="6" step="1" value="4">
 <label>Durchmesser am Griff <span class="v" id="vD"></span></label><input type="range" id="D" min="10" max="40" step="1" value="25">
-<label>Spitze</label><select id="tip"><option value="rund">Rundschnur</option><option value="band">Karbatschenband</option></select>
 <label>Flechtart / Steifigkeit</label><select id="K"><option value="0.6">weich</option><option value="1" selected>mittel</option><option value="1.6">steif</option></select>
 <label>Schmierung (innere Reibung)</label><select id="S"><option value="0.004">trocken</option><option value="0.003">gewachst (au&szlig;en)</option><option value="0.0008" selected>Silikon&ouml;l (innen)</option></select>
+</fieldset>
+<fieldset><legend>Treibschnur und Besen</legend>
+<label>Treibschnur</label><select id="ts"><option value="keine">keine (Goisel l&auml;uft spitz aus)</option><option value="rund" selected>Rundschnur (&Oslash; 3 mm)</option><option value="band">Band (10 mm breit)</option></select>
+<label>L&auml;nge der Treibschnur <span class="v" id="vTL"></span></label><input type="range" id="TL" min="0.1" max="1" step="0.05" value="0.4">
+<label>Besen (Knaller) am Ende <span class="v" id="vBm"></span></label><input type="range" id="Bm" min="0.2" max="1.5" step="0.1" value="0.4">
 </fieldset>
 <fieldset><legend>Knaller</legend>
 <label>Schwung: Tempo des vorderen Teils <span class="v" id="vV"></span></label><input type="range" id="V" min="5" max="40" step="1" value="20">
@@ -57,7 +61,8 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <canvas id="cv" width="900" height="300"></canvas>
 <div class="res" id="res"></div>
 <div id="ebox" style="margin-top:8px"></div>
-<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft eine Schlaufe los (exakte L&ouml;sung von Goriely &amp; McMillen 2002). Dazu kommen Luftwiderstand, innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;) und auf Wunsch ein Zug am Griff, der am Ende abgestoppt wird. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen (0,4&nbsp;g wie bei Krehl). Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen.</div>
+<div id="sbox" style="margin-top:10px"></div>
+<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft eine Schlaufe los (exakte L&ouml;sung von Goriely &amp; McMillen 2002). Dazu kommen Luftwiderstand, innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;) und auf Wunsch ein Zug am Griff, der am Ende abgestoppt wird. An die Goisel schlie&szlig;t die Treibschnur an (gr&uuml;n gezeichnet): gleich dick, viel biegsamer als die geflochtene Goisel, als Band breit und mit viel Luftwiderstand. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen (Krehl: 0,37&nbsp;g). Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen.</div>
 </div></div>
 <script>
 'use strict';
@@ -72,29 +77,43 @@ function labels(){
   $('vV').textContent=fmt(+$('V').value,1)+' m/s';
   $('vA').textContent=$('A').value+' cm';
   $('vT').textContent=$('T').value+' °C';
+  $('vTL').textContent=fmt(+$('TL').value*100,0)+' cm';
+  $('vBm').textContent=fmt(+$('Bm').value,1)+' g';
+  $('TL').disabled=$('ts').value==='keine';
 }
 document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',labels));
 labels();
 
 function simulate(p){
-  const N=p.N||90, L=p.L, ds=L/(N-1);
+  // Goisel (verjuengt, Laenge Lg) + Treibschnur (gleichmaessig, Laenge lT) + Besen als Punktmasse am Ende
+  const Lg=p.L, ts=p.tsType||'keine', lT=ts==='keine'?0:p.tsL, L=Lg+lT;
+  const N=p.N||(lT>0?100:90), ds=L/(N-1);
   const tipFrac=p.tip/100;
   const csound=331.3+0.606*p.T, rho=1.293*273.15/(273.15+p.T);
-  const s=new Float64Array(N), del=new Float64Array(N), m=new Float64Array(N), im=new Float64Array(N);
-  const mu0=p.M/(L*(1+tipFrac)/2);
-  for(let i=0;i<N;i++){s[i]=i*ds;del[i]=1-(1-tipFrac)*s[i]/L;m[i]=mu0*del[i]*ds*((i===0||i===N-1)?0.5:1);im[i]=1/m[i];}
-  m[N-1]+=(p.cracker??0.0004);for(let i=0;i<N;i++)im[i]=1/m[i];
+  const s=new Float64Array(N), del=new Float64Array(N), mu=new Float64Array(N), m=new Float64Array(N), im=new Float64Array(N);
+  const mu0=p.M/(Lg*(1+tipFrac)/2);
+  // Treibschnur: Rundschnur 3 mm (Kunstfaser/Hanf, ~1150 kg/m3), Band 10 x 1,2 mm (Leder, ~900 kg/m3)
+  const TS={rund:{mu:1150*Math.PI*0.003*0.003/4,w:0.003,cd:1.2,dEq:3,soft:2},band:{mu:900*0.010*0.0012,w:0.010,cd:1.9,dEq:3.9,soft:16}}[ts];
+  const B=new Float64Array(N), eta=new Float64Array(N), w=new Float64Array(N), cd=new Float64Array(N);
+  const B0=0.56*p.K*Math.pow(p.D/25,4);
+  for(let i=0;i<N;i++){
+    s[i]=i*ds;
+    if(s[i]<=Lg+1e-9){
+      del[i]=1-(1-tipFrac)*s[i]/Lg;mu[i]=mu0*del[i];
+      B[i]=B0*del[i]*del[i];w[i]=p.D/1000*Math.sqrt(del[i]);cd[i]=1.2;
+    }else{
+      // gedrehte Schnur bzw. flaches Band biegt sich viel leichter als die geflochtene Goisel
+      const dq=Math.pow(TS.dEq/p.D,2);del[i]=dq;mu[i]=TS.mu;
+      B[i]=B0*dq*dq/TS.soft;w[i]=TS.w;cd[i]=TS.cd;
+    }
+    eta[i]=B[i]*p.S;
+    m[i]=mu[i]*ds*((i===0||i===N-1)?0.5:1);
+  }
+  const besen=p.cracker??0.0004;
+  m[N-1]+=besen;for(let i=0;i<N;i++)im[i]=1/m[i];
   im[0]=0;im[1]=0;
   const a=p.A, U=p.V, c=U/2;
   const xl=Math.max(2*a,0.12*L), lu=L-xl-Math.PI*a;
-  const B=new Float64Array(N), eta=new Float64Array(N), w=new Float64Array(N), cd=new Float64Array(N);
-  for(let i=0;i<N;i++){
-    B[i]=0.56*p.K*Math.pow(p.D/25,4)*del[i]*del[i];
-    eta[i]=B[i]*p.S;
-    const d=p.D/1000*Math.sqrt(del[i]);
-    const band=p.tipType==='band'&&s[i]>0.85*L;
-    w[i]=band?3*d:d; cd[i]=band?1.9:1.2;
-  }
   const x=new Float64Array(N), y=new Float64Array(N), vx=new Float64Array(N), vy=new Float64Array(N);
   // Start wie beim echten Schlag (Buerger 1995 / Krehl 1998): unterer Teil liegt still, oberer Teil mit der Spitze
   // fliegt mit dem Schwung U nach vorn, dazwischen rollt die Schlaufe mit U/2.
@@ -181,9 +200,10 @@ function simulate(p){
   }
   const [k1,u1]=energy();const Enow=k1+u1;
   const Ein=E0+Whand;const Wrest=Math.max(0,Ein-Enow-Wdrag-Wint);
-  let mEnd=0;for(let i=iTip;i<N;i++)mEnd+=m[i];const mCr=(p.cracker??0.0004)+0.5*mu0*del[N-1]*ds;
+  let mEnd=0;for(let i=iTip;i<N;i++)mEnd+=m[i];const mCr=besen+0.5*mu[N-1]*ds;
   const vBesen=vmax*Math.sqrt(mEnd/mCr);
-  return {vBesen,mEnd,mCr,frames,ftimes,tipPath,vmax,tvmax,superT,csound,E0,Whand,Ein,Wdrag,Wint,Wrest,Enow,Fmax,Fmean:Fn?Fsum/Fn:0,tipEk,steps,L,tEnd:t,handX};
+  const wDraw=Array.from(w,v=>v*1000), nG=Math.floor(Lg/ds+1e-9);
+  return {vBesen,mEnd,mCr,frames,ftimes,tipPath,vmax,tvmax,superT,csound,E0,Whand,Ein,Wdrag,Wint,Wrest,Enow,Fmax,Fmean:Fn?Fsum/Fn:0,tipEk,steps,L,Lg,lT,tsType:ts,besen,wDraw,nG,rho,T:p.T,tEnd:t,handX};
 }
 
 const cv=$('cv'),g=cv.getContext('2d');
@@ -201,7 +221,7 @@ function draw(k){
   g.fillStyle='#bbb';for(let i=0;i<=k;i+=2){const q=R.tipPath[i];g.fillRect(X(q[0])-1,Y(q[1])-1,2,2);}
   g.strokeStyle='#5a3a1f';g.lineWidth=7;g.beginPath();g.moveTo(X(f[0][0])-34,Y(f[1][0])+10);g.lineTo(X(f[0][0]),Y(f[1][0]));g.stroke();
   const n=f[0].length;
-  for(let i=0;i<n-1;i++){const dd=1-(1-PCTsel()/100)*i/(n-1);g.lineWidth=Math.max(1,5*Math.sqrt(dd));g.strokeStyle='#b08968';g.beginPath();g.moveTo(X(f[0][i]),Y(f[1][i]));g.lineTo(X(f[0][i+1]),Y(f[1][i+1]));g.stroke();}
+  for(let i=0;i<n-1;i++){const wd=R.wDraw[i];g.lineWidth=Math.max(1,wd*0.2*(R.tsType==='band'&&i>=R.nG?0.5:1));g.strokeStyle=i>=R.nG?'#2f6f3e':'#b08968';g.beginPath();g.moveTo(X(f[0][i]),Y(f[1][i]));g.lineTo(X(f[0][i+1]),Y(f[1][i+1]));g.stroke();}
   g.fillStyle='#c21807';g.beginPath();g.arc(X(f[0][n-1]),Y(f[1][n-1]),4,0,7);g.fill();
   const t=R.ftimes[k];
   g.fillStyle='#333';g.font='13px Arial';g.fillText('t = '+fmt(t*1000,0)+' ms (Zeitlupe)',W-190,18);
@@ -227,12 +247,70 @@ function show(){
   for(const q of parts)b+='<i style="background:'+q[2]+'"></i>'+q[0]+' '+fmt(Math.max(0,q[1]),1)+' J ('+fmt(100*Math.max(0,q[1])/tot,0)+' %)';
   b+='</div><div class="hint">Wohin die Energie geht, bis zum Ende der Rechnung (Gesamt '+fmt(tot,1)+' J). Die Energie des Knalls selbst ist sehr klein (Millijoule, siehe Akustik) und hier nicht eigens ausgewiesen.</div>';
   $('ebox').innerHTML='<b style="color:#7a0f04">Energiebilanz</b>'+b;
+  showSound();
+}
+// ---- Akustik: N-Welle nach der Geschossknall-Formel (Whitham 1952, DuMond 1946) ----
+// Ueberdruck dp = 0,53 p0 (M^2-1)^(1/8) d / (r^(3/4) l^(1/4)),  Dauer T = 1,82 M r^(1/4) d / (c (M^2-1)^(3/8) l^(1/4))
+// d, l: Dicke und Laenge des "Geschosses" = Besen (0,4 g ~ 6 mm dick, 40 mm lang; skaliert mit Masse^(1/3)); Band: mind. 10 mm breit
+function acoustics(){
+  if(R.vBesen<=R.csound)return null;
+  const M=R.vBesen/R.csound, b=Math.max(0.05,M*M-1), k=Math.cbrt(R.besen/0.0004);
+  let d=0.006*k; const l=0.04*k; if(R.tsType==='band')d=Math.max(d,0.010);
+  const p0=101325;
+  const at=r=>{const dp=0.53*p0*Math.pow(b,1/8)*d/(Math.pow(r,0.75)*Math.pow(l,0.25));
+    const T=1.82*M*Math.pow(r,0.25)*d/(R.csound*Math.pow(b,3/8)*Math.pow(l,0.25));
+    return {r,dp,T,L:20*Math.log10(dp/2e-5),fp:0.66/T};};
+  return {M,d,l,n:at(1),f:at(10)};
+}
+// Betrag des Spektrums einer N-Welle (Dauer T, Spitze dp): |P(f)| = dp T (sin x - x cos x)/x^2, x = pi f T
+function nspec(w,f){const x=Math.PI*f*w.T;return w.dp*w.T*Math.abs(x<1e-4?x/3:(Math.sin(x)-x*Math.cos(x))/(x*x));}
+function showSound(){
+  const A=acoustics(), box=$('sbox');
+  if(!A){box.innerHTML='<b style="color:#7a0f04">Lautstärke und Frequenzspektrum</b><div class="hint">Kein Knall: Der Besen bleibt unter der Schallgeschwindigkeit, man hört nur ein Zischen bzw. Flattern. Mehr Schwung, mehr Verjüngung oder ein leichterer Besen helfen.</div>';return;}
+  let h='<div class="res">';
+  h+=card('Spitzenpegel 1 m vor dem Knall',fmt(A.n.L,0)+' dB<br><small>Überdruck '+fmt(A.n.dp,0)+' Pa</small>');
+  h+=card('in 10 m (Zuschauer, vorne)',fmt(A.f.L,0)+' dB<br><small>zur anderen Seite etwa 15 dB leiser</small>');
+  h+=card('Hauptfrequenz',fmt(A.n.fp/1000,1)+' kHz <small>in 1 m</small><br><small>'+fmt(A.f.fp/1000,1)+' kHz in 10 m</small>');
+  h+=card('Dauer der N-Welle',fmt(A.n.T*1e6,0)+' µs <small>in 1 m</small><br><small>'+fmt(A.f.T*1e6,0)+' µs in 10 m</small>');
+  h+='</div><canvas id="sp" width="900" height="240" style="margin-top:8px"></canvas>';
+  h+='<div class="hint">Links die Druckkurve (N-Welle) in 1 m, rechts ihr Frequenzspektrum in 1 m (rot) und 10 m (blau), bezogen auf den höchsten Wert in 1 m. Mit der Entfernung wird die N-Welle länger und flacher, der Knall also leiser und tiefer. Ein schnellerer Besen gibt eine kürzere, höhere Welle, ein dickerer Besen oder ein Band eine längere, tiefere. Gerechnet mit der Formel für den Geschossknall (Whitham 1952), angewandt auf den Besen. Das ist eine Abschätzung: Der eigentliche Knall entsteht beim Umschlagen am Umkehrpunkt (Krehl 1998), und die Richtwirkung ist nicht gerechnet. Ab etwa 140 dB Spitzenpegel ist Gehörschutz Pflicht, für Knaller und für Zuschauer in der ersten Reihe.</div>';
+  box.innerHTML='<b style="color:#7a0f04">Lautstärke und Frequenzspektrum</b>'+h;
+  const c=$('sp'),q=c.getContext('2d'),W=c.width,H=c.height;
+  q.clearRect(0,0,W,H);q.font='12px Arial';
+  // Druckkurve
+  const x0=40,x1=250,yT=25,yB=H-35,ym=(yT+yB)/2,Tus=A.n.T*1e6,tmax=Tus*2;
+  q.strokeStyle='#ccc';q.beginPath();q.moveTo(x0,ym);q.lineTo(x1,ym);q.moveTo(x0,yT);q.lineTo(x0,yB);q.stroke();
+  const X=t=>x0+(t+Tus*0.5)/tmax*(x1-x0), amp=(yB-yT)/2*0.9;
+  q.strokeStyle='#c21807';q.lineWidth=2.5;q.beginPath();q.moveTo(x0,ym);q.lineTo(X(0),ym);q.lineTo(X(0),ym-amp);q.lineTo(X(Tus),ym+amp);q.lineTo(X(Tus),ym);q.lineTo(x1,ym);q.stroke();
+  q.fillStyle='#333';q.fillText('Druck in 1 m',x0+4,yT-8);q.fillText('+'+fmt(A.n.dp,0)+' Pa',X(0)+4,ym-amp+10);
+  q.fillText('0',x0-12,ym+4);q.fillText(fmt(Tus,0)+' µs',X(Tus)-20,yB+18);
+  // Spektrum
+  const sx0=310,sx1=W-15,sy0=25,sy1=H-35,fmin=100,fmax=40000,dbmin=-40;
+  const FX=f=>sx0+Math.log(f/fmin)/Math.log(fmax/fmin)*(sx1-sx0), DY=db=>sy0+(Math.min(0,db)/dbmin)*(sy1-sy0);
+  q.fillStyle='rgba(194,24,7,0.07)';q.fillRect(FX(2000),sy0,FX(5000)-FX(2000),sy1-sy0);
+  q.fillStyle='rgba(0,0,0,0.06)';q.fillRect(FX(20000),sy0,sx1-FX(20000),sy1-sy0);
+  q.strokeStyle='#ddd';q.lineWidth=1;q.fillStyle='#666';
+  for(const f of [100,200,500,1000,2000,5000,10000,20000,40000]){q.beginPath();q.moveTo(FX(f),sy0);q.lineTo(FX(f),sy1);q.stroke();q.fillText(f>=1000?(f/1000)+' kHz':f+' Hz',FX(f)-14,sy1+15);}
+  for(let db=0;db>=dbmin;db-=10){q.beginPath();q.moveTo(sx0,DY(db));q.lineTo(sx1,DY(db));q.stroke();q.fillText(db+' dB',sx0-40,DY(db)+4);}
+  q.fillText('Ohr am empfindlichsten',FX(2000)+3,sy1-6);q.fillText('unhörbar',FX(20000)+4,sy1-6);
+  const ref=Math.max(...Array.from({length:300},(_,i)=>nspec(A.n,fmin*Math.pow(fmax/fmin,i/299))));
+  for(const [wv,col] of [[A.n,'#c21807'],[A.f,'#2a6fb0']]){
+    q.strokeStyle=col;q.lineWidth=2.5;q.beginPath();
+    for(let i=0;i<300;i++){const f=fmin*Math.pow(fmax/fmin,i/299);const db=20*Math.log10(nspec(wv,f)/ref+1e-9);i?q.lineTo(FX(f),DY(Math.max(dbmin,db))):q.moveTo(FX(f),DY(Math.max(dbmin,db)));}
+    q.stroke();
+    q.fillStyle=col;q.beginPath();q.arc(FX(wv.fp),DY(20*Math.log10(nspec(wv,wv.fp)/ref)),4,0,7);q.fill();
+  }
+  q.fillStyle='#c21807';q.fillText('1 m',sx1-60,sy0+30);q.fillStyle='#2a6fb0';q.fillText('10 m',sx1-60,sy0+46);
+  q.fillStyle='#333';q.fillText('Frequenzspektrum',sx0+4,sy0-8);
 }
 function run(){
-  const p={L:+$('L').value,M:+$('M').value,tip:PCTsel(),D:+$('D').value,tipType:$('tip').value,K:+$('K').value,S:+$('S').value,V:+$('V').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value};
+  const p={L:+$('L').value,M:+$('M').value,tip:PCTsel(),D:+$('D').value,tsType:$('ts').value,tsL:+$('TL').value,cracker:+$('Bm').value/1000,K:+$('K').value,S:+$('S').value,V:+$('V').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value};
   $('go').disabled=true;$('go').textContent='rechnet …';
   setTimeout(()=>{R=simulate(p);window.__R=R;show();play();$('go').disabled=false;$('go').textContent='Knallen!';},30);
 }
+// Eingebettet als srcdoc-iframe: Hoehe des Rahmens an den Inhalt anpassen
+function fit(){try{const f=window.frameElement;if(f)f.style.height=(document.documentElement.scrollHeight+4)+'px';}catch(e){}}
+new ResizeObserver(fit).observe(document.body);window.addEventListener('resize',fit);
 $('go').addEventListener('click',run);
 $('slow').addEventListener('click',()=>{if(R)play();});
 run();
