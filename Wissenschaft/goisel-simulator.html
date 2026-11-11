@@ -65,7 +65,7 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <button id="go" style="margin-top:8px">Ein Knall in Zeitlupe</button>
 </fieldset>
 <fieldset><legend>4 Knalle hintereinander</legend>
-<label>Takt: Zeit je Knall <span class="v" id="vTc"></span></label><input type="range" id="Tc" min="0.5" max="1.4" step="0.05" value="1"><button id="go4" style="margin-top:8px">4 Knalle!</button>
+<div class="hint" style="margin-top:0">Knall auf Knall ohne Pause, abwechselnd rechts und links. Der Takt ergibt sich aus Bogen und Laufzeit der Schlaufe.</div><button id="go4" style="margin-top:8px">4 Knalle!</button>
 </fieldset>
 <div class="row"><button id="slow">Nochmal abspielen</button></div>
 </div>
@@ -96,7 +96,7 @@ function labels(){
   $('rowRund').style.display=$('ts').value==='rund'?'':'none';$('rowBand').style.display=$('ts').value==='band'?'':'none';
   $('vZ').textContent=fmt(+$('Z').value,1)+' m/s';
   $('vN').textContent=fmt(+$('NW').value*100,0)+' cm';
-  $('vTc').textContent=fmt(+$('Tc').value,2)+' s';}
+}
 document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',labels));
 
 // Aufbau der Goisel als Gliederkette: verjuengte Goisel (stetig oder in Stufen), Knoten, Treibschnur, Besen
@@ -401,64 +401,58 @@ function showSound(){
   q.fillStyle='#333';q.fillText('Frequenzspektrum',sx0+4,sy0-8);
 }
 // ================= 4 Knalle hintereinander =================
-// Jeder Schlag hat drei Phasen:
-//  1. Ausholen (35 % des Takts): Die Hand bringt die Goisel in den Startzustand des Knalls (Energie E0, Impuls P0).
-//     Abgeschaetzt: Kraft als Sinus-Stoss mit dem Impuls P0; dazu muss der Rest vom letzten Schlag, der noch nicht
-//     abgefangen war, abgebremst werden.
-//  2. Schlaufe laeuft und knallt: gerechnet wie beim Einzelknall.
-//  3. Abfangen: Die Goisel fliegt nach dem Knall weiter und zieht an der Hand; die Arme fangen sie federnd ab (gerechnet).
+// Die Knalle folgen direkt aufeinander: Nach dem Knall geht das Nachfuehren gleich in den Bogen zur anderen Seite ueber.
+// Ein Schlag = Bogen (Ausholen, Dauer aus dem Drehtempo) + Zurueckziehen bis zum Knall (gerechnet wie beim Einzelknall).
+// Der Takt ergibt sich daraus. Was nach dem Knall noch in der Goisel steckt, muss der naechste Bogen umlenken/abbremsen.
 let S=null,MODE='one',MIR=false,LBL='';
 function simulateSeries(p){
-  const R1=simulate({...p,catchT:Math.max(0.08,0.65*p.Tc)});
-  const Tc=p.Tc,Tsw=Math.min(0.8*Tc,p.sweepT||0.35*Tc),NS=4;
-  const tLoop=R1.tC0, avail=Math.max(0,Tc-Tsw-tLoop);
-  let last=R1.rec[R1.rec.length-1];for(const r of R1.rec){if(r[0]>=tLoop+avail){last=r;break;}}
-  const Eleft=Math.max(0,last[3]), Wcatch=Math.max(0,-last[4]), dragA=last[5], intA=last[6];
-  let FmaxC=0;for(const r of R1.rec)if(r[0]>R1.tvmax+0.004&&r[0]<=tLoop+avail&&r[1]>FmaxC)FmaxC=r[1];
-  const Wpull=Math.max(0,R1.Whand-R1.Wcatch);
+  const R1=simulate({...p,catchT:0.5});
+  const Tsw=p.sweepT, tCr=R1.tvmax, Tc=Tsw+tCr, NS=4;
+  let last=R1.rec[R1.rec.length-1];for(const r of R1.rec){if(r[0]>=tCr+0.003){last=r;break;}}
+  const Eleft=Math.max(0,last[3]), dragA=last[5], intA=last[6];
+  const Wpull=Math.max(0,R1.Whand-R1.Wnach-R1.Wcatch);
   const Pleft=Math.sqrt(2*R1.M*Eleft);
   const cyc=[];
   for(let j=0;j<NS;j++){
     const Erest=j===0?0:Eleft;
-    cyc.push({side:j%2===0?'rechts':'links',Fsw:Math.PI*(R1.P0+(j===0?0:Pleft))/(2*Tsw),E0:R1.E0,Erest,Wpull,Floop:R1.Fmax,Fcatch:FmaxC,Wcatch,
-      tCrack:j*Tc+Tsw+R1.tvmax});
+    cyc.push({side:j%2===0?'rechts':'links',Fsw:Math.PI*(R1.P0+(j===0?0:Pleft))/(2*Tsw),E0:R1.E0,Erest,Wpull,Floop:R1.Fmax,Fruck:R1.FmaxR,tRuck:R1.tR,tCrack:j*Tc+Tsw+tCr});
   }
-  return {R1,cyc,Tc,Tsw,tLoop,avail,Eleft,Wcatch,Wpull,dragA,intA,FmaxC,tooFast:Tc-Tsw<tLoop,csound:R1.csound,vBesen:R1.vBesen,besen:R1.besen,dEff:R1.dEff,lF:R1.lF,tsType:R1.tsType};
+  return {R1,cyc,Tc,Tsw,tLoop:tCr,avail:0,Eleft,Wcatch:0,Wpull,dragA,intA,FmaxC:R1.FmaxR,csound:R1.csound,vBesen:R1.vBesen,besen:R1.besen,dEff:R1.dEff,lF:R1.lF,tsType:R1.tsType};
 }
 function playSeries(){
   if(anim)cancelAnimationFrame(anim);
   const R1=S.R1;R=R1;
-  let ke=R1.ftimes.findIndex(t=>t>S.tLoop+Math.max(S.avail,0.05));if(ke<0)ke=R1.frames.length-1;
-  let j=0,phase=0,k=0,c=0;
+  let ke=R1.ftimes.findIndex(t=>t>R1.tvmax+0.03);if(ke<0)ke=R1.frames.length-1;
+  let j=0,k=0;
   const step=()=>{
-    MIR=j%2===1;
-    if(phase===0){LBL=(j+1)+'. Schlag nach '+S.cyc[j].side+': Ausholen';draw(0);if(++c>20){phase=1;c=0;k=0;}}
-    else{const tt=R1.ftimes[k];LBL=(j+1)+'. Schlag nach '+S.cyc[j].side+': '+(tt<R1.tvmax?'Schlaufe läuft':tt<R1.tC0?'Knall!':'Abfangen');draw(k);k+=tt<R1.tC0?1:4;if(k>ke){j++;phase=0;}}
+    MIR=j%2===1;const tt=R1.ftimes[k];
+    LBL=(j+1)+'. Knall nach '+S.cyc[j].side+': '+(tt<R1.tvmax?'Schlaufe läuft':'Knall!');draw(k);k++;
+    if(k>ke){j++;k=0;}
     if(j<4)anim=requestAnimationFrame(()=>setTimeout(step,20));else{MIR=false;LBL='';}
   };step();
 }
 function showSeries(){
   const cy=S.cyc, knall=S.vBesen>S.csound, A=acoustics(S);
-  const posW=S.R1.E0+S.Wpull, negW=S.Wcatch+S.Eleft, Pm=posW/S.Tc, Pmus=(4*posW+0.8*negW)/S.Tc;
-  const Fbig=Math.max(...cy.map(q=>Math.max(q.Fsw,q.Floop,q.Fcatch)));
+  const posW=S.R1.E0+S.Wpull, negW=S.Eleft, Pm=posW/S.Tc, Pmus=(4*posW+0.8*negW)/S.Tc;
+  const Fbig=Math.max(...cy.map(q=>Math.max(q.Fsw,q.Floop,q.Fruck)));
   let h='';
-  if(S.tooFast)h+='<div class="card knall" style="margin-top:8px"><b>Takt zu schnell</b><span class="big" style="font-size:15px">Die Schlaufe braucht '+fmt(S.tLoop,2)+' s bis zum Knall, für das Ausholen bleibt zu wenig Zeit. Takt langsamer stellen.</span></div>';
   h+='<div class="res">';
   h+=card('Knalle',(knall?'4':'0')+' von 4<br><small>Besen '+fmt(S.vBesen,0)+' m/s, Mach '+fmt(S.vBesen/S.csound,2)+(A?', '+fmt(A.n.L,0)+' dB in 1 m':'')+'</small>',knall?'knall':'');
   h+=card('Arbeit je Schlag',fmt(posW,0)+' J<br><small>dazu abbremsen: '+fmt(negW,0)+' J</small>');
   h+=card('Größte Kraft an der Hand',fmt(Fbig,0)+' N<br><small>≈ '+fmt(Fbig/9.81,0)+' kg</small>');
-  h+=card('Leistung im Takt',fmt(Pm,0)+' W<br><small>Muskeln ≈ '+fmt(Pmus,0)+' W, '+fmt(60/S.Tc,0)+' Knalle/min</small>');
+  h+=card('Takt (ergibt sich)',fmt(S.Tc,2)+' s je Knall<br><small>Bogen '+fmt(S.Tsw,2)+' s + Schlaufe bis zum Knall '+fmt(S.tLoop,2)+' s; '+fmt(30/S.Tc,0)+' Knalle in 30 s</small>');
+  h+=card('Leistung im Takt',fmt(Pm,0)+' W<br><small>Muskeln ≈ '+fmt(Pmus,0)+' W</small>');
   h+='</div><canvas id="fc" width="900" height="230" style="margin-top:8px"></canvas>';
   const td='style="padding:3px 4px"';
-  h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px"><tr style="background:#f3e7dc"><th '+td+' align="left">Schlag</th><th '+td+'>Ausholen<br><small>Kraft / Arbeit</small></th><th '+td+'>davon Rest abbremsen</th><th '+td+'>Zurückziehen und Nachführen<br><small>Kraft / Arbeit</small></th><th '+td+'>Ruck nach dem Knall / abgefangen</th></tr>';
-  cy.forEach((q,j)=>{h+='<tr style="border-top:1px solid #e3d6c8;text-align:center"><td '+td+' align="left">'+(j+1)+'. nach '+q.side+(j===0?' <small>(aus der Ruhe)</small>':'')+'</td><td '+td+'>'+fmt(q.Fsw,0)+' N / '+fmt(q.E0+q.Erest,0)+' J</td><td '+td+'>'+(j===0?'–':fmt(q.Erest,0)+' J')+'</td><td '+td+'>'+fmt(q.Floop,0)+' N / '+fmt(q.Wpull,0)+' J</td><td '+td+'>'+fmt(q.Fcatch,0)+' N / '+fmt(q.Wcatch,0)+' J</td></tr>';});
+  h+='<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px"><tr style="background:#f3e7dc"><th '+td+' align="left">Schlag</th><th '+td+'>Ausholen<br><small>Kraft / Arbeit</small></th><th '+td+'>davon Rest abbremsen</th><th '+td+'>Zurückziehen bis zum Knall<br><small>Kraft / Arbeit</small></th><th '+td+'>Ruck nach dem Knall<br><small>im nächsten Bogen</small></th></tr>';
+  cy.forEach((q,j)=>{h+='<tr style="border-top:1px solid #e3d6c8;text-align:center"><td '+td+' align="left">'+(j+1)+'. nach '+q.side+(j===0?' <small>(aus der Ruhe)</small>':'')+'</td><td '+td+'>'+fmt(q.Fsw,0)+' N / '+fmt(q.E0+q.Erest,0)+' J</td><td '+td+'>'+(j===0?'–':fmt(q.Erest,0)+' J')+'</td><td '+td+'>'+fmt(q.Floop,0)+' N / '+fmt(q.Wpull,0)+' J</td><td '+td+'>'+fmt(q.Fruck,0)+' N <small>nach '+fmt(q.tRuck*1000,0)+' ms</small></td></tr>';});
   h+='</table>';
-  const parts=[['Luftwiderstand',S.dragA,'#4a90c2'],['innere Reibung',S.intA,'#e07b00'],['von den Armen abgefangen',S.Wcatch,'#999'],['Rest, den das nächste Ausholen abbremsen muss',S.Eleft,'#7a0f04']];
+  const parts=[['Luftwiderstand',S.dragA,'#4a90c2'],['innere Reibung',S.intA,'#e07b00'],['Rest, den der nächste Bogen umlenken muss',S.Eleft,'#7a0f04']];
   const tot=parts.reduce((a,q)=>a+Math.max(0,q[1]),0)||1;
   let b='<div class="bar">';for(const q of parts)b+='<div style="width:'+(100*Math.max(0,q[1])/tot)+'%;background:'+q[2]+'" title="'+q[0]+'"></div>';b+='</div><div class="leg">';
   for(const q of parts)b+='<i style="background:'+q[2]+'"></i>'+q[0]+' '+fmt(Math.max(0,q[1]),0)+' J ';
   h+='<div style="margin-top:8px"><b style="color:#7a0f04">Wohin die Energie eines Schlags geht ('+fmt(posW,0)+' J)</b>'+b+'</div></div>';
-  h+='<div class="hint">Jeder Schlag hat drei Phasen. <b>Ausholen</b> (der Scheibenwischer-Bogen des Steckens, Dauer aus dem Drehtempo): Die Hand bringt die Goisel auf Schwung. Das ist abgeschätzt: Kraft aus dem Impuls, den die Goisel beim Loslaufen der Schlaufe hat, Arbeit aus ihrer Energie. <b>Zurückziehen, Knall und Nachführen</b>: gerechnet wie beim Einzelknall. <b>Abfangen</b>: Nach dem Knall fliegt die Goisel weiter und streckt sich mit einem Ruck (Überschwinger). Führt die Hand lange genug nach, wird der Ruck geglättet; sonst geben die Arme nach und fangen ihn ab (gerechnet als gedämpfte Feder). Das ist der Ausgleich. Was bis zum nächsten Ausholen nicht abgefangen ist, muss das nächste Ausholen zusätzlich abbremsen; bei schnellem Takt wird das mehr. Abbremsen kostet die Muskeln auch Kraft, aber nur etwa ein Fünftel dessen, was Beschleunigen kostet (Muskeln ≈ 4 × Arbeit + 0,8 × Abbremsen). Im gleichmäßigen Takt sind alle Schläge gleich, nur der erste startet aus der Ruhe. Im Diagramm: gestrichelt das abgeschätzte Ausholen, durchgezogen die gerechnete Kraft.</div>';
+  h+='<div class="hint">Die Knalle folgen direkt aufeinander: Nach dem Knall führt die Hand nach und geht dabei gleich in den Bogen zur anderen Seite über. Ein Schlag ist damit <b>Bogen</b> (Ausholen über den Kopf, Dauer aus dem Drehtempo; Kraft abgeschätzt aus dem Impuls der Goisel) plus <b>Zurückziehen bis zum Knall</b> (gerechnet wie beim Einzelknall). Daraus ergibt sich der Takt. Zum Vergleich: Beim Biosphärencup 2012 haben wir beim schnellsten Knaller mit flacher Haltung 0,40 bis 0,47 s je Knall gezählt. Was nach dem Knall noch in der Goisel steckt, muss der nächste Bogen umlenken; der Ruck beim Überschwinger fällt schon in den nächsten Bogen. Abbremsen kostet die Muskeln nur etwa ein Fünftel dessen, was Beschleunigen kostet (Muskeln ≈ 4 × Arbeit + 0,8 × Abbremsen). Im gleichmäßigen Takt sind alle Schläge gleich, nur der erste startet aus der Ruhe. Im Diagramm: gestrichelt der abgeschätzte Bogen, durchgezogen die gerechnete Kraft.</div>';
   $('serbox').innerHTML=h;
   // Kraftverlauf ueber 4 Schlaege
   const c=$('fc'),q=c.getContext('2d'),W=c.width,H=c.height;q.clearRect(0,0,W,H);q.font='12px Arial';
@@ -466,7 +460,7 @@ function showSeries(){
   const X=t=>x0+t/T*(x1-x0), Y=f=>y1-Math.min(f,fm)/fm*(y1-y0);
   q.strokeStyle='#ddd';q.fillStyle='#666';const stepF=fm>1500?500:fm>600?200:fm>250?100:50;
   for(let f=0;f<=fm;f+=stepF){q.beginPath();q.moveTo(x0,Y(f));q.lineTo(x1,Y(f));q.stroke();q.fillText(f+' N',4,Y(f)+4);}
-  for(let s=0;s<=T+1e-9;s+=0.5)q.fillText(fmt(s,1)+' s',X(s)-10,y1+16);
+  for(let s=0;s<=T+1e-9;s+=(T>3?0.5:0.25))q.fillText(fmt(s,1)+' s',X(s)-10,y1+16);
   for(let j=0;j<4;j++){
     const o=j*S.Tc, cq=cy[j];
     q.fillStyle='rgba(0,0,0,0.05)';q.fillRect(X(o),y0,X(o+S.Tsw)-X(o),y1-y0);
@@ -476,8 +470,7 @@ function showSeries(){
     for(const r of S.R1.rec){if(r[0]>tmax)break;const xx=X(o+S.Tsw+r[0]);if(first){q.moveTo(xx,Y(r[1]));first=false;}else q.lineTo(xx,Y(r[1]));}q.stroke();
     q.strokeStyle=knall?'#c21807':'#aaa';q.lineWidth=2;q.beginPath();q.moveTo(X(cq.tCrack),y0);q.lineTo(X(cq.tCrack),y1);q.stroke();
     q.fillStyle=knall?'#c21807':'#888';q.fillText(knall?'Knall '+(j+1):'kein Knall',X(cq.tCrack)+3,y0+12);
-    q.fillStyle='#888';q.fillText('Ausholen',X(o)+3,y1-6);
-    if(S.avail>0.02)q.fillText('Abfangen',X(o+S.Tsw+S.tLoop)+3,y1-6);
+    q.fillStyle='#888';q.fillText('Bogen',X(o)+3,y1-6);
   }
   q.fillStyle='#333';q.fillText('Kraft an der Hand',x0+4,y0+12);
 }
@@ -486,7 +479,7 @@ function setMode(md){MODE=md;MIR=false;LBL='';for(const id of ['res','ebox','sbo
 // den Kopf zur anderen, flach ca. 180 Grad in 0,36 s). Die gestreckte Goisel dreht mit; ihre Mitte laeuft auf dem Radius
 // Bogen + halbe Goisellaenge und ist dadurch schneller als die Stecken-Spitze. Flach (grosser Radius) gibt mehr Schwung.
 function swing(q){const G=goiselGeom(q),w=q.W*Math.PI/180;return {arc:q.Rk*Math.PI,T:Math.PI/w,vTip:w*q.Rk,V:w*(q.Rk+G.Lg/2),w};}
-function params(){const q={Rk:+$('RK').value,W:+$('W').value,nStr:+$('NS').value,strick:$('SG').value};const sw=swing(q);return {V:sw.V,sweepT:sw.T,vTip:sw.vTip,nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,W:+$('W').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,Tc:+$('Tc').value,NW:+$('NW').value};}
+function params(){const q={Rk:+$('RK').value,W:+$('W').value,nStr:+$('NS').value,strick:$('SG').value};const sw=swing(q);return {V:sw.V,sweepT:sw.T,vTip:sw.vTip,nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,W:+$('W').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,NW:+$('NW').value};}
 function run4(){
   const p=params();$('go4').disabled=true;$('go4').textContent='rechnet …';
   setTimeout(()=>{S=simulateSeries(p);window.__S=S;setMode('four');showSeries();playSeries();$('go4').disabled=false;$('go4').textContent='4 Knalle!';},30);
