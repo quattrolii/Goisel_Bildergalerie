@@ -57,10 +57,10 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <label>Lufttemperatur <span class="v" id="vT"></span></label><input type="range" id="T" min="-10" max="30" step="1" value="10">
 </fieldset>
 <fieldset><legend>Schlag</legend>
-<label>Schwung: Tempo der Goisel auf der Laufbahn <span class="v" id="vV"></span></label><input type="range" id="V" min="4" max="35" step="1" value="18">
-<label>Schlaufe (Radius) <span class="v" id="vA"></span></label><input type="range" id="A" min="10" max="60" step="5" value="25">
-<label>Steckenhaltung (Bahn der Stecken-Spitze)</label><select id="RK"><option value="0.7">steil: kleiner Bogen (Radius 0,7 m)</option><option value="1.4" selected>flach: gro&szlig;er Bogen (Radius 1,4 m)</option></select>
-<label>Zur&uuml;ckziehen: Tempo der Hand <span class="v" id="vZ"></span></label><input type="range" id="Z" min="0" max="20" step="0.5" value="12">
+<label>Steckenhaltung (Scheibenwischer-Bogen des Steckens)</label><select id="RK"><option value="0.7">steil: kleiner Bogen (Radius 0,7 m)</option><option value="1.4" selected>flach: gro&szlig;er Bogen (Radius 1,4 m)</option></select>
+<label>Drehtempo des Steckens <span class="v" id="vW"></span></label><input type="range" id="W" min="200" max="900" step="10" value="500">
+<div class="hint" id="winfo" style="margin-top:2px"></div>
+<label>Schlaufe (Radius) <span class="v" id="vA"></span></label><input type="range" id="A" min="10" max="60" step="5" value="25"><label>Zur&uuml;ckziehen: Tempo der Hand <span class="v" id="vZ"></span></label><input type="range" id="Z" min="0" max="20" step="0.5" value="12">
 <label>Nachf&uuml;hren nach dem Knall: Weg <span class="v" id="vN"></span></label><input type="range" id="NW" min="0" max="2.5" step="0.05" value="1.5">
 <button id="go" style="margin-top:8px">Ein Knall in Zeitlupe</button>
 </fieldset>
@@ -75,7 +75,7 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <div id="ebox" style="margin-top:8px"></div>
 <div id="sbox" style="margin-top:10px"></div>
 <div id="serbox" style="margin-top:8px;display:none"></div>
-<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft die Goisel mit dem Schwung ruhig auf ihrer Laufbahn, der vordere Teil fliegt mit diesem Tempo, dazwischen rollt die Schlaufe. Dann zieht die Hand zur&uuml;ck: Der hintere Teil l&auml;uft jetzt mit dem Hand-Tempo in die andere Richtung, die beiden Tempi addieren sich (Schwung 18 + Zur&uuml;ckziehen 12 = 30&nbsp;m/s gegeneinander; Krehls 97-g-Peitsche brauchte nach der B&uuml;rger-Formel gut 40&nbsp;m/s). Nach dem Knall f&uuml;hrt die Hand noch ein St&uuml;ck nach und bremst dabei gleichm&auml;&szlig;ig ab; das gl&auml;ttet den &Uuml;berschwinger. Ohne Nachf&uuml;hren (0&nbsp;cm) stoppt die Hand schlagartig und es gibt einen harten Ruck. Dazu kommen Luftwiderstand und innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;). Die Goisel ist aus Stricken gebunden: Jeder Strick wird am Stecken doppelt gelegt, so dass die Enden gleiche Abst&auml;nde haben (Strickl&auml;nge geteilt durch doppelte Strickzahl plus eins). Wo ein Ende aufh&ouml;rt, wird die Goisel eine Stufe d&uuml;nner: abgetreppte Verj&uuml;ngung. Beim Flechten wird sie um den Faktor 1,22 k&uuml;rzer als die Stricke. Vorne folgt das konische Goisale (0,8&nbsp;m, 8 auf 3&nbsp;mm). Strickl&auml;ngen und -gewichte stammen aus unseren Bautabellen. Die eigenen Stricke sind gewogen, das Jute-Gewicht ist aus dem erwarteten Gewicht der 22-Strick-Goisel errechnet, das des K&auml;lberstricks daraus &uuml;ber den Querschnitt gesch&auml;tzt. Zum Vergleich l&auml;sst sich die gleiche Goisel stetig verj&uuml;ngt rechnen; an jeder Stufe wird ein Teil der Welle zur&uuml;ckgeworfen. Die Stecken-Spitze l&auml;uft auf einem Kreisbogen wie ein Scheibenwischer: Steil gehalten ist der Bogen klein, flach gehalten gro&szlig; und lang (je 150&nbsp;Grad). Reicht der Bogen f&uuml;r Zur&uuml;ckziehen und Nachf&uuml;hren nicht, muss die Hand am Ende abbremsen. Knoten (schwarze Punkte) sind 5&nbsp;g schwer, viermal so steif und doppelt so dick wie die Goisel an der Stelle. An die Goisel schlie&szlig;t die Treibschnur an (gr&uuml;n gezeichnet): gleich dick, viel biegsamer als die geflochtene Goisel, als Band breit und mit viel Luftwiderstand. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen. Der Besen ist das ausgefranste Ende der Treibschnur; sein Gewicht ergibt sich aus Schnur und ausgefranster L&auml;nge (3&nbsp;mm Dyneema, 5&nbsp;cm: gut 0,3&nbsp;g, Krehl hatte 0,37&nbsp;g). Erst die aufgef&auml;cherten Fasern koppeln den Knall richtig an die Luft; in der Schallabsch&auml;tzung z&auml;hlt deshalb ihre Breite. Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen.</div>
+<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft die Goisel mit dem Schwung aus dem Bogen ruhig auf ihrer Laufbahn, der vordere Teil fliegt mit diesem Tempo, dazwischen rollt die Schlaufe. Dann zieht die Hand zur&uuml;ck: Der hintere Teil l&auml;uft jetzt mit dem Hand-Tempo in die andere Richtung, die beiden Tempi addieren sich (zum Beispiel 24&nbsp;m/s Schwung aus dem flachen Bogen + 12&nbsp;m/s Zur&uuml;ckziehen = 36&nbsp;m/s gegeneinander; Krehls 97-g-Peitsche brauchte nach der B&uuml;rger-Formel gut 40&nbsp;m/s). Nach dem Knall f&uuml;hrt die Hand noch ein St&uuml;ck nach und bremst dabei gleichm&auml;&szlig;ig ab; das gl&auml;ttet den &Uuml;berschwinger. Ohne Nachf&uuml;hren (0&nbsp;cm) stoppt die Hand schlagartig und es gibt einen harten Ruck. Dazu kommen Luftwiderstand und innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;). Die Goisel ist aus Stricken gebunden: Jeder Strick wird am Stecken doppelt gelegt, so dass die Enden gleiche Abst&auml;nde haben (Strickl&auml;nge geteilt durch doppelte Strickzahl plus eins). Wo ein Ende aufh&ouml;rt, wird die Goisel eine Stufe d&uuml;nner: abgetreppte Verj&uuml;ngung. Beim Flechten wird sie um den Faktor 1,22 k&uuml;rzer als die Stricke. Vorne folgt das konische Goisale (0,8&nbsp;m, 8 auf 3&nbsp;mm). Strickl&auml;ngen und -gewichte stammen aus unseren Bautabellen. Die eigenen Stricke sind gewogen, das Jute-Gewicht ist aus dem erwarteten Gewicht der 22-Strick-Goisel errechnet, das des K&auml;lberstricks daraus &uuml;ber den Querschnitt gesch&auml;tzt. Zum Vergleich l&auml;sst sich die gleiche Goisel stetig verj&uuml;ngt rechnen; an jeder Stufe wird ein Teil der Welle zur&uuml;ckgeworfen. Der Schwung kommt aus dem Bogen des Steckens: Er pendelt wie ein Scheibenwischer in der Ebene vor dem K&ouml;rper von einer Seite &uuml;ber den Kopf zur anderen (in unseren Videos bei flacher Haltung etwa 180&nbsp;Grad in 0,36&nbsp;s, also rund 500&nbsp;Grad pro Sekunde). Die gestreckte Goisel dreht dabei mit; ihre Mitte l&auml;uft auf dem Radius Bogen plus halbe Goisell&auml;nge und ist deshalb viel schneller als die Stecken-Spitze. Flach gehalten ist der Bogen gro&szlig; und lang, steil gehalten klein: Bei gleichem Drehtempo gibt flach mehr Schwung. Danach zieht die Hand zur&uuml;ck und f&uuml;hrt nach. Knoten (schwarze Punkte) sind 5&nbsp;g schwer, viermal so steif und doppelt so dick wie die Goisel an der Stelle. An die Goisel schlie&szlig;t die Treibschnur an (gr&uuml;n gezeichnet): gleich dick, viel biegsamer als die geflochtene Goisel, als Band breit und mit viel Luftwiderstand. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen. Der Besen ist das ausgefranste Ende der Treibschnur; sein Gewicht ergibt sich aus Schnur und ausgefranster L&auml;nge (3&nbsp;mm Dyneema, 5&nbsp;cm: gut 0,3&nbsp;g, Krehl hatte 0,37&nbsp;g). Erst die aufgef&auml;cherten Fasern koppeln den Knall richtig an die Luft; in der Schallabsch&auml;tzung z&auml;hlt deshalb ihre Breite. Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen.</div>
 </div></div>
 <script>
 'use strict';
@@ -85,7 +85,9 @@ function fmt(x,d){return x.toLocaleString('de-DE',{maximumFractionDigits:d,minim
 function labels(){
   {const G=goiselGeom({nStr:+$('NS').value,strick:$('SG').value});
    $('ginfo').textContent='Goisel: '+fmt(G.Lg,2)+' m lang (Geflecht '+fmt(G.Lb,2)+' m + Goisale '+fmt(G.Lgs,1)+' m), '+fmt(G.M*1000,0)+' g, '+(2*G.n)+' Enden alle '+fmt(G.u*100,0)+' cm, am Griff ca. '+fmt(G.Dg,0)+' mm dick';}
-  $('vV').textContent=fmt(+$('V').value,1)+' m/s';
+  {const sw=swing({Rk:+$('RK').value,W:+$('W').value,nStr:+$('NS').value,strick:$('SG').value});
+   $('vW').textContent=$('W').value+' °/s';
+   $('winfo').textContent='Bogen '+fmt(sw.arc,1)+' m in '+fmt(sw.T,2)+' s, Stecken-Spitze '+fmt(sw.vTip,1)+' m/s, Goisel läuft mit '+fmt(sw.V,1)+' m/s (Schwung)';}
   $('vA').textContent=$('A').value+' cm';
   $('vT').textContent=$('T').value+' °C';
   $('vTL').textContent=fmt(+$('TL').value*100,0)+' cm';
@@ -188,9 +190,8 @@ function simulate(p){
   // Danach fuehrt sie noch den Weg dN nach und bremst dabei gleichmaessig ab (glaettet den Ueberschwinger).
   const pullV=p.Z, dN=p.NW??0.5;
   let handX=0, phaseH=0, decA=0, loopS=xl, hvS=0, tCrackH=0, xCrackH=0, FmaxPost=0, Wnach=0, FmaxR=0, tR=0;
-  // Bahn der Stecken-Spitze: Kreisbogen wie ein Scheibenwischer (steil: kleiner Radius, flach: grosser Radius).
-  // Verfuegbar sind 150 Grad Bogen; reicht die Bahn nicht, muss die Hand am Ende abbremsen (hoechstens 300 m/s2).
-  const Rk=p.Rk||1.4, sMax=Rk*150*Math.PI/180, aLim=300;
+  // Zurueckziehen und Nachfuehren: gerade Bewegung der Hand entgegen der Laufrichtung (der Bogen ist der Schwung davor).
+  const Rk=1e6, sMax=1e9, aLim=300;
   let sH=0, arcEnd=false, hvx=0, hvy=0;
   const bx0=x[0],by0=y[0],bx1=x[1],by1=y[1];
   const tEnd=Math.min(2.5,2*lu/(U+pullV)*1.6+2*dN/Math.max(pullV,1)+0.1);
@@ -289,7 +290,7 @@ function simulate(p){
   const kd=rho*1.2*C.dEff*Math.max(C.lF,0.02)*0.05/Math.max(mCr,1e-6);
   const vBesen=vmax*Math.sqrt(mEnd/mCr)/Math.sqrt(1+kd);
   const wDraw=Array.from(w,v=>v*1000), nG=Math.floor(Lg/ds+1e-9);
-  return {vBesen,mEnd,mCr,frames,ftimes,tipPath,vmax,tvmax,superT,csound,E0,Whand,Ein,Wdrag,Wint,Wrest,Enow,Fmax,Fmean:Fn?Fsum/Fn:0,tipEk,steps,L,Lg,lT,tsType:ts,besen,lF:C.lF,dEff:C.dEff,wDraw,nG,knotIdx:C.knotIdx,rho,T:p.T,tEnd:t,handX,rec,tC0,Wcatch,Wdamp,FmaxC,EC0,P0,M:C.M,catching,FmaxPost,Wnach,FmaxR,tR,pullDist:-xCrackH,nachDist:xCrackH-handX,arcEnd,Rk,sMax,hyMin:Math.min(...frames.map(f=>f[1][0])),
+  return {vBesen,mEnd,mCr,frames,ftimes,tipPath,vmax,tvmax,superT,csound,E0,Whand,Ein,Wdrag,Wint,Wrest,Enow,Fmax,Fmean:Fn?Fsum/Fn:0,tipEk,steps,L,Lg,lT,tsType:ts,besen,lF:C.lF,dEff:C.dEff,wDraw,nG,knotIdx:C.knotIdx,rho,T:p.T,tEnd:t,handX,rec,tC0,Wcatch,Wdamp,FmaxC,EC0,P0,M:C.M,catching,FmaxPost,Wnach,FmaxR,tR,pullDist:-xCrackH,nachDist:xCrackH-handX,arcEnd,Rk,sMax,V:p.V,vTip:p.vTip,sweepT:p.sweepT,hyMin:Math.min(...frames.map(f=>f[1][0])),
     hxMin:Math.min(...frames.map(f=>f[0][0]))};
 }
 
@@ -327,7 +328,7 @@ function show(){
   h+=card('Energie aus dem Schwung',fmt(R.E0,1)+' J');
   h+=card('Arbeit durch Zurückziehen',fmt(Math.max(0,R.Whand-R.Wnach),1)+' J<br><small>Weg der Hand bis zum Knall '+fmt(R.pullDist*100,0)+' cm</small>');
   h+=card('Zugkraft beim Zurückziehen',fmt(R.Fmax,0)+' N<br><small>≈ '+fmt(R.Fmax/9.81,1)+' kg</small>');
-  h+=card('Bahn der Stecken-Spitze',fmt((R.pullDist+R.nachDist)*100,0)+' cm<br><small>von '+fmt(R.sMax*100,0)+' cm Bogen'+(R.arcEnd?'; reicht nicht, Hand muss am Ende abbremsen':'')+'</small>',R.arcEnd?'knall':'');
+  h+=card('Schwung aus dem Bogen',fmt(R.V,1)+' m/s<br><small>Stecken-Spitze '+fmt(R.vTip,1)+' m/s, Bogen in '+fmt(R.sweepT,2)+' s</small>');
   h+=card('Ruck nach dem Knall (Überschwinger)',fmt(R.FmaxR,0)+' N<br><small>'+fmt(R.tR*1000,0)+' ms nach dem Knall; nachgeführt '+fmt(R.nachDist*100,0)+' cm</small>');
   const P=R.E0+R.Whand-R.Wcatch;
   h+=card('Leistung bei 1 Schlag/s',fmt(P,0)+' W<br><small>Muskeln ≈ '+fmt(P*4,0)+' W (Wirkungsgrad etwa 25 %)</small>');
@@ -409,7 +410,7 @@ function showSound(){
 let S=null,MODE='one',MIR=false,LBL='';
 function simulateSeries(p){
   const R1=simulate({...p,catchT:Math.max(0.08,0.65*p.Tc)});
-  const Tc=p.Tc,Tsw=0.35*Tc,NS=4;
+  const Tc=p.Tc,Tsw=Math.min(0.8*Tc,p.sweepT||0.35*Tc),NS=4;
   const tLoop=R1.tC0, avail=Math.max(0,Tc-Tsw-tLoop);
   let last=R1.rec[R1.rec.length-1];for(const r of R1.rec){if(r[0]>=tLoop+avail){last=r;break;}}
   const Eleft=Math.max(0,last[3]), Wcatch=Math.max(0,-last[4]), dragA=last[5], intA=last[6];
@@ -457,7 +458,7 @@ function showSeries(){
   let b='<div class="bar">';for(const q of parts)b+='<div style="width:'+(100*Math.max(0,q[1])/tot)+'%;background:'+q[2]+'" title="'+q[0]+'"></div>';b+='</div><div class="leg">';
   for(const q of parts)b+='<i style="background:'+q[2]+'"></i>'+q[0]+' '+fmt(Math.max(0,q[1]),0)+' J ';
   h+='<div style="margin-top:8px"><b style="color:#7a0f04">Wohin die Energie eines Schlags geht ('+fmt(posW,0)+' J)</b>'+b+'</div></div>';
-  h+='<div class="hint">Jeder Schlag hat drei Phasen. <b>Ausholen</b> (35 % des Takts): Die Hand bringt die Goisel auf Schwung. Das ist abgeschätzt: Kraft aus dem Impuls, den die Goisel beim Loslaufen der Schlaufe hat, Arbeit aus ihrer Energie. <b>Zurückziehen, Knall und Nachführen</b>: gerechnet wie beim Einzelknall. <b>Abfangen</b>: Nach dem Knall fliegt die Goisel weiter und streckt sich mit einem Ruck (Überschwinger). Führt die Hand lange genug nach, wird der Ruck geglättet; sonst geben die Arme nach und fangen ihn ab (gerechnet als gedämpfte Feder). Das ist der Ausgleich. Was bis zum nächsten Ausholen nicht abgefangen ist, muss das nächste Ausholen zusätzlich abbremsen; bei schnellem Takt wird das mehr. Abbremsen kostet die Muskeln auch Kraft, aber nur etwa ein Fünftel dessen, was Beschleunigen kostet (Muskeln ≈ 4 × Arbeit + 0,8 × Abbremsen). Im gleichmäßigen Takt sind alle Schläge gleich, nur der erste startet aus der Ruhe. Im Diagramm: gestrichelt das abgeschätzte Ausholen, durchgezogen die gerechnete Kraft.</div>';
+  h+='<div class="hint">Jeder Schlag hat drei Phasen. <b>Ausholen</b> (der Scheibenwischer-Bogen des Steckens, Dauer aus dem Drehtempo): Die Hand bringt die Goisel auf Schwung. Das ist abgeschätzt: Kraft aus dem Impuls, den die Goisel beim Loslaufen der Schlaufe hat, Arbeit aus ihrer Energie. <b>Zurückziehen, Knall und Nachführen</b>: gerechnet wie beim Einzelknall. <b>Abfangen</b>: Nach dem Knall fliegt die Goisel weiter und streckt sich mit einem Ruck (Überschwinger). Führt die Hand lange genug nach, wird der Ruck geglättet; sonst geben die Arme nach und fangen ihn ab (gerechnet als gedämpfte Feder). Das ist der Ausgleich. Was bis zum nächsten Ausholen nicht abgefangen ist, muss das nächste Ausholen zusätzlich abbremsen; bei schnellem Takt wird das mehr. Abbremsen kostet die Muskeln auch Kraft, aber nur etwa ein Fünftel dessen, was Beschleunigen kostet (Muskeln ≈ 4 × Arbeit + 0,8 × Abbremsen). Im gleichmäßigen Takt sind alle Schläge gleich, nur der erste startet aus der Ruhe. Im Diagramm: gestrichelt das abgeschätzte Ausholen, durchgezogen die gerechnete Kraft.</div>';
   $('serbox').innerHTML=h;
   // Kraftverlauf ueber 4 Schlaege
   const c=$('fc'),q=c.getContext('2d'),W=c.width,H=c.height;q.clearRect(0,0,W,H);q.font='12px Arial';
@@ -481,7 +482,11 @@ function showSeries(){
   q.fillStyle='#333';q.fillText('Kraft an der Hand',x0+4,y0+12);
 }
 function setMode(md){MODE=md;MIR=false;LBL='';for(const id of ['res','ebox','sbox'])$(id).style.display=md==='one'?'':'none';$('serbox').style.display=md==='four'?'':'none';}
-function params(){return {nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,V:+$('V').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,Tc:+$('Tc').value,NW:+$('NW').value};}
+// Schwung aus dem Scheibenwischer-Bogen (aus den Videos: Stecken pendelt in der Ebene vor dem Koerper von einer Seite ueber
+// den Kopf zur anderen, flach ca. 180 Grad in 0,36 s). Die gestreckte Goisel dreht mit; ihre Mitte laeuft auf dem Radius
+// Bogen + halbe Goisellaenge und ist dadurch schneller als die Stecken-Spitze. Flach (grosser Radius) gibt mehr Schwung.
+function swing(q){const G=goiselGeom(q),w=q.W*Math.PI/180;return {arc:q.Rk*Math.PI,T:Math.PI/w,vTip:w*q.Rk,V:w*(q.Rk+G.Lg/2),w};}
+function params(){const q={Rk:+$('RK').value,W:+$('W').value,nStr:+$('NS').value,strick:$('SG').value};const sw=swing(q);return {V:sw.V,sweepT:sw.T,vTip:sw.vTip,nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,W:+$('W').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,Tc:+$('Tc').value,NW:+$('NW').value};}
 function run4(){
   const p=params();$('go4').disabled=true;$('go4').textContent='rechnet …';
   setTimeout(()=>{S=simulateSeries(p);window.__S=S;setMode('four');showSeries();playSeries();$('go4').disabled=false;$('go4').textContent='4 Knalle!';},30);
