@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Goisel-Simulator</title>
+<style>
+:root{--rot:#c21807;--dunkel:#7a0f04;--sand:#f3e7dc;--rand:#c9b8a6;--text:#222;--grau:#666}
+*{box-sizing:border-box}
+body{margin:0;padding:10px;font-family:Arial,Helvetica,sans-serif;color:var(--text);background:#fff;font-size:14px}
+h2{font-size:17px;color:var(--dunkel);margin:0 0 6px}
+.wrap{display:grid;grid-template-columns:minmax(230px,300px) 1fr;gap:12px}
+@media (max-width:720px){.wrap{grid-template-columns:1fr}}
+fieldset{border:1px solid var(--rand);border-radius:6px;margin:0 0 8px;padding:6px 8px;background:#fffaf6}
+legend{font-weight:bold;color:var(--dunkel);font-size:13px}
+label{display:block;margin:5px 0 1px;font-size:13px}
+label span.v{float:right;font-weight:bold;color:var(--dunkel)}
+input[type=range]{width:100%}
+select{width:100%;padding:3px}
+button{background:var(--rot);color:#fff;border:0;border-radius:5px;padding:8px 14px;font-size:15px;cursor:pointer;width:100%}
+button:disabled{opacity:.5;cursor:wait}
+canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;background:#fff;display:block}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px;margin-top:8px}
+.card{border:1px solid var(--rand);border-radius:6px;padding:6px 8px;background:#fffaf6}
+.card b{display:block;font-size:12px;color:var(--grau);font-weight:normal}
+.card .big{font-size:20px;font-weight:bold;color:var(--dunkel)}
+.card small{font-size:12px;font-weight:normal;color:var(--grau)}
+.knall small{color:#fff!important}
+.knall{background:var(--rot)!important;color:#fff}
+.knall b,.knall .big{color:#fff!important}
+.bar{display:flex;height:22px;border-radius:4px;overflow:hidden;border:1px solid var(--rand);margin:4px 0}
+.bar div{height:100%}
+.leg{font-size:12px;color:var(--grau)}
+.leg i{display:inline-block;width:10px;height:10px;margin:0 3px 0 8px;vertical-align:middle}
+.hint{font-size:12px;color:var(--grau);margin-top:6px;line-height:1.35}
+.row{display:flex;gap:6px;align-items:center;margin-top:6px}
+.row button{width:auto;flex:1;padding:5px}
+</style></head><body>
+<div class="wrap">
+<div>
+<fieldset><legend>Goisel</legend>
+<label>L&auml;nge <span class="v" id="vL"></span></label><input type="range" id="L" min="2" max="6" step="0.25" value="4">
+<label>Gewicht <span class="v" id="vM"></span></label><input type="range" id="M" min="0.2" max="2.5" step="0.05" value="1">
+<label>Verj&uuml;ngung: Querschnitt an der Spitze <span class="v" id="vP"></span></label><input type="range" id="P" min="0" max="6" step="1" value="4">
+<label>Durchmesser am Griff <span class="v" id="vD"></span></label><input type="range" id="D" min="10" max="40" step="1" value="25">
+<label>Spitze</label><select id="tip"><option value="rund">Rundschnur</option><option value="band">Karbatschenband</option></select>
+<label>Flechtart / Steifigkeit</label><select id="K"><option value="0.6">weich</option><option value="1" selected>mittel</option><option value="1.6">steif</option></select>
+<label>Schmierung (innere Reibung)</label><select id="S"><option value="0.004">trocken</option><option value="0.003">gewachst (au&szlig;en)</option><option value="0.0008" selected>Silikon&ouml;l (innen)</option></select>
+</fieldset>
+<fieldset><legend>Knaller</legend>
+<label>Schwung: Tempo des vorderen Teils <span class="v" id="vV"></span></label><input type="range" id="V" min="5" max="40" step="1" value="20">
+<label>Schlaufe (Radius) <span class="v" id="vA"></span></label><input type="range" id="A" min="10" max="60" step="5" value="25">
+<label>Abstoppen / Zug am Griff</label><select id="Z"><option value="0">kein Zug</option><option value="1.5" selected>leicht</option><option value="3">kr&auml;ftig</option></select>
+<label>Lufttemperatur <span class="v" id="vT"></span></label><input type="range" id="T" min="-10" max="30" step="1" value="10">
+</fieldset>
+<button id="go">Knallen!</button>
+<div class="row"><button id="slow">Zeitlupe nochmal</button></div>
+</div>
+<div>
+<canvas id="cv" width="900" height="300"></canvas>
+<div class="res" id="res"></div>
+<div id="ebox" style="margin-top:8px"></div>
+<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft eine Schlaufe los (exakte L&ouml;sung von Goriely &amp; McMillen 2002). Dazu kommen Luftwiderstand, innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;) und auf Wunsch ein Zug am Griff, der am Ende abgestoppt wird. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen (0,4&nbsp;g wie bei Krehl). Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen.</div>
+</div></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const PCT=[50,20,10,5,2,1,0.5];
+function fmt(x,d){return x.toLocaleString('de-DE',{maximumFractionDigits:d,minimumFractionDigits:d});}
+function labels(){
+  $('vL').textContent=fmt(+$('L').value,2)+' m';
+  $('vM').textContent=fmt(+$('M').value,2)+' kg';
+  $('vP').textContent=String(PCT[+$('P').value]).replace('.',',')+' %';
+  $('vD').textContent=$('D').value+' mm';
+  $('vV').textContent=fmt(+$('V').value,1)+' m/s';
+  $('vA').textContent=$('A').value+' cm';
+  $('vT').textContent=$('T').value+' °C';
+}
+document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',labels));
+labels();
+
+function simulate(p){
+  const N=p.N||90, L=p.L, ds=L/(N-1);
+  const tipFrac=p.tip/100;
+  const csound=331.3+0.606*p.T, rho=1.293*273.15/(273.15+p.T);
+  const s=new Float64Array(N), del=new Float64Array(N), m=new Float64Array(N), im=new Float64Array(N);
+  const mu0=p.M/(L*(1+tipFrac)/2);
+  for(let i=0;i<N;i++){s[i]=i*ds;del[i]=1-(1-tipFrac)*s[i]/L;m[i]=mu0*del[i]*ds*((i===0||i===N-1)?0.5:1);im[i]=1/m[i];}
+  m[N-1]+=(p.cracker??0.0004);for(let i=0;i<N;i++)im[i]=1/m[i];
+  im[0]=0;im[1]=0;
+  const a=p.A, U=p.V, c=U/2;
+  const xl=Math.max(2*a,0.12*L), lu=L-xl-Math.PI*a;
+  const B=new Float64Array(N), eta=new Float64Array(N), w=new Float64Array(N), cd=new Float64Array(N);
+  for(let i=0;i<N;i++){
+    B[i]=0.56*p.K*Math.pow(p.D/25,4)*del[i]*del[i];
+    eta[i]=B[i]*p.S;
+    const d=p.D/1000*Math.sqrt(del[i]);
+    const band=p.tipType==='band'&&s[i]>0.85*L;
+    w[i]=band?3*d:d; cd[i]=band?1.9:1.2;
+  }
+  const x=new Float64Array(N), y=new Float64Array(N), vx=new Float64Array(N), vy=new Float64Array(N);
+  // Start wie beim echten Schlag (Buerger 1995 / Krehl 1998): unterer Teil liegt still, oberer Teil mit der Spitze
+  // fliegt mit dem Schwung U nach vorn, dazwischen rollt die Schlaufe mit U/2.
+  const om=U/(2*a);
+  for(let i=0;i<N;i++){
+    const si=s[i];
+    if(si<=xl){x[i]=si;y[i]=0;vx[i]=0;vy[i]=0;}
+    else if(si<=xl+Math.PI*a){const th=(si-xl)/a;x[i]=xl+a*Math.sin(th);y[i]=a-a*Math.cos(th);vx[i]=U/2+om*(y[i]-a);vy[i]=-om*(x[i]-xl);}
+    else{x[i]=xl-(si-xl-Math.PI*a);y[i]=2*a;vx[i]=U;vy[i]=0;}
+  }
+  vx[0]=vy[0]=vx[1]=vy[1]=0;
+  const rest=new Float64Array(N-1);for(let i=0;i<N-1;i++)rest[i]=Math.hypot(x[i+1]-x[i],y[i+1]-y[i]);
+  const fx=new Float64Array(N), fy=new Float64Array(N), ox=new Float64Array(N), oy=new Float64Array(N);
+  function energy(){let k=0,u=0;for(let i=0;i<N;i++)k+=0.5*m[i]*(vx[i]*vx[i]+vy[i]*vy[i]);for(let i=1;i<N-1;i++){const lx=x[i-1]-2*x[i]+x[i+1],ly=y[i-1]-2*y[i]+y[i+1];u+=0.5*B[i]*(lx*lx+ly*ly)/(ds*ds*ds);}return [k,u];}
+  let [k0,u0]=energy(); const E0=k0+u0;
+  let Wdrag=0,Wint=0,Whand=0,Fmax=0,Fsum=0,Fn=0;
+  let t=0, vmax=0, tvmax=0, superT=0, tipv=0;
+  const frames=[], ftimes=[], tipPath=[];
+  const pullV=p.Z, stopS=0.6*L;
+  let handX=0, pulling=pullV>0, loopS=xl, hvS=0;
+  const tEnd=Math.min(2.5,2*lu/U*1.4+0.05);
+  let Pxo=0,Pyo=0;for(let i=2;i<N;i++){Pxo+=m[i]*vx[i];Pyo+=m[i]*vy[i];}
+  let Fs=0;
+  let nextFrame=0, frameDt=tEnd/220, lastTipX=x[N-1], lastTipY=y[N-1];
+  let after=0, steps=0, tipEk=0;
+  const iTip=Math.max(2,N-Math.max(3,Math.round(0.03*N)));
+  while(t<tEnd&&steps<400000){
+    let vm=0;for(let i=0;i<N;i++){const vv=vx[i]*vx[i]+vy[i]*vy[i];if(vv>vm)vm=vv;}vm=Math.sqrt(vm);
+    const dt=Math.min(2e-5,(p.cfl||0.05)*ds/Math.max(vm,1));
+    fx.fill(0);fy.fill(0);
+    let pInt=0,pDrag=0;
+    for(let i=1;i<N-1;i++){
+      const lx=x[i-1]-2*x[i]+x[i+1],ly=y[i-1]-2*y[i]+y[i+1];
+      const lvx=vx[i-1]-2*vx[i]+vx[i+1],lvy=vy[i-1]-2*vy[i]+vy[i+1];
+      const gx=(B[i]*lx)/(ds*ds*ds), gy=(B[i]*ly)/(ds*ds*ds);
+      const ee=Math.min(eta[i],m[i]*ds*ds*ds/(10*dt));const hx=(ee*lvx)/(ds*ds*ds), hy=(ee*lvy)/(ds*ds*ds);
+      fx[i-1]-=gx+hx;fy[i-1]-=gy+hy;fx[i]+=2*(gx+hx);fy[i]+=2*(gy+hy);fx[i+1]-=gx+hx;fy[i+1]-=gy+hy;
+      pInt+=hx*lvx+hy*lvy;
+    }
+    for(let i=2;i<N;i++){
+      let tx=x[i]-x[i-1],ty=y[i]-y[i-1];const tl=Math.hypot(tx,ty)||1;tx/=tl;ty/=tl;
+      const vpar=vx[i]*tx+vy[i]*ty, px=vx[i]-vpar*tx, py=vy[i]-vpar*ty, vp=Math.hypot(px,py);
+      const mach=vp/csound, cdi=cd[i]*(mach>0.8?1.35:1);
+      const kq=0.5*rho*cdi*w[i]*ds*((i===N-1)?0.5:1);
+      const dfx=-kq*vp*px-0.5*rho*0.01*Math.PI*w[i]*ds*Math.abs(vpar)*vpar*tx;
+      const dfy=-kq*vp*py-0.5*rho*0.01*Math.PI*w[i]*ds*Math.abs(vpar)*vpar*ty;
+      fx[i]+=dfx;fy[i]+=dfy;pDrag+=-(dfx*vx[i]+dfy*vy[i]);
+    }
+    Wint+=pInt*dt;Wdrag+=pDrag*dt;
+    let Fdx=0,Fdy=0;for(let i=2;i<N;i++){Fdx+=fx[i];Fdy+=fy[i];}
+    for(let i=0;i<N;i++){ox[i]=x[i];oy[i]=y[i];vx[i]+=fx[i]*im[i]*dt;vy[i]+=fy[i]*im[i]*dt;x[i]+=vx[i]*dt;y[i]+=vy[i]*dt;}
+    if(pulling){if(loopS>stopS)pulling=false;}
+    hvS+=((pulling?pullV:0)-hvS)*Math.min(1,dt/(pulling?0.03:0.01));let hv=hvS;
+    x[0]=ox[0]-hv*dt;x[1]=ox[1]-hv*dt;y[0]=oy[0];y[1]=oy[1];handX-=hv*dt;
+    for(let it=0;it<(p.it||10);it++){
+      for(let par=0;par<2;par++){
+        for(let i=par;i<N-1;i+=2){
+          const dx=x[i+1]-x[i],dy=y[i+1]-y[i];const d=Math.hypot(dx,dy)||1e-12;const wsum=im[i]+im[i+1];if(wsum===0)continue;
+          const cc=(d-rest[i])/wsum/d;const cx=cc*dx,cy=cc*dy;
+          x[i]+=im[i]*cx;y[i]+=im[i]*cy;x[i+1]-=im[i+1]*cx;y[i+1]-=im[i+1]*cy;
+        }
+      }
+    }
+    for(let i=0;i<N;i++){vx[i]=(x[i]-ox[i])/dt;vy[i]=(y[i]-oy[i])/dt;}
+    vx[0]=vx[1]=-hv;vy[0]=vy[1]=0;
+    // Kraft der Hand auf die Goisel aus der Impulsbilanz: dP/dt = F_Hand + Summe der aeusseren Kraefte
+    let Px=0,Py=0;for(let i=2;i<N;i++){Px+=m[i]*vx[i];Py+=m[i]*vy[i];}
+    const Fx=(Px-Pxo)/dt-Fdx,Fy=(Py-Pyo)/dt-Fdy;Pxo=Px;Pyo=Py;
+    const a1=Math.min(1,dt/3e-3);Fs=(1-a1)*Fs+a1*Math.hypot(Fx,Fy);
+    if(steps>20){if(Fs>Fmax)Fmax=Fs;Fsum+=Fs*dt;Fn+=dt;}
+    Whand+=-Fx*hv*dt;
+    // Energiekorrektur: Das Rechenverfahren (Projektion auf feste Gliedlaengen) verliert selbst Energie.
+    // Diesen rein numerischen Verlust geben wir zurueck, so dass nur Luftwiderstand und innere Reibung Energie kosten.
+    if(!p.noFix){const [kk,uu]=energy();const target=E0+Whand-Wdrag-Wint;if(kk>1e-9&&target>uu){let f=Math.sqrt((target-uu)/kk);f=Math.min(1.01,Math.max(0.99,f));for(let i=2;i<N;i++){vx[i]*=f;vy[i]*=f;}}}
+    let bi=0,maxc=0;for(let i=2;i<N-2;i++){const lx=x[i-1]-2*x[i]+x[i+1],ly=y[i-1]-2*y[i]+y[i+1];const cv=lx*lx+ly*ly;if(cv>maxc){maxc=cv;bi=i;}}
+    if(bi>2)loopS=Math.max(loopS,s[bi]);
+    {let ek=0,mm=0;for(let i=iTip;i<N;i++){ek+=0.5*m[i]*(vx[i]*vx[i]+vy[i]*vy[i]);mm+=m[i];}const vt=Math.sqrt(2*ek/mm);const b1=Math.min(1,dt/1e-4);tipv=(1-b1)*tipv+b1*vt;}
+    if(tipv>vmax){vmax=tipv;tvmax=t;let e=0;for(let i=Math.floor(0.9*N);i<N;i++)e+=0.5*m[i]*(vx[i]*vx[i]+vy[i]*vy[i]);tipEk=e;}
+    if(tipv>csound)superT+=dt;
+    if(t>=nextFrame){frames.push([Float32Array.from(x),Float32Array.from(y)]);ftimes.push(t);tipPath.push([x[N-1],y[N-1]]);nextFrame+=frameDt;}
+    if(vmax>0&&tipv<0.25*vmax&&t>tvmax+0.02)after+=dt;
+    if(after>0.03)break;
+    t+=dt;steps++;
+  }
+  const [k1,u1]=energy();const Enow=k1+u1;
+  const Ein=E0+Whand;const Wrest=Math.max(0,Ein-Enow-Wdrag-Wint);
+  let mEnd=0;for(let i=iTip;i<N;i++)mEnd+=m[i];const mCr=(p.cracker??0.0004)+0.5*mu0*del[N-1]*ds;
+  const vBesen=vmax*Math.sqrt(mEnd/mCr);
+  return {vBesen,mEnd,mCr,frames,ftimes,tipPath,vmax,tvmax,superT,csound,E0,Whand,Ein,Wdrag,Wint,Wrest,Enow,Fmax,Fmean:Fn?Fsum/Fn:0,tipEk,steps,L,tEnd:t,handX};
+}
+
+const cv=$('cv'),g=cv.getContext('2d');
+let R=null,anim=null;
+function draw(k){
+  const f=R.frames[k],W=cv.width,H=cv.height;
+  g.clearRect(0,0,W,H);
+  let xmin=-0.12*R.L,xmax=1.05*R.L,ymin=-0.06*R.L,ymax=0.18*R.L;
+  for(const q of R.tipPath){xmin=Math.min(xmin,q[0]);xmax=Math.max(xmax,q[0]);ymax=Math.max(ymax,q[1]*1.15);ymin=Math.min(ymin,q[1]*1.15);}
+  const sc=Math.min((W-50)/(xmax-xmin),(H-40)/(ymax-ymin));
+  const X=v=>30+(v-xmin)*sc, Y=v=>H-25-(v-ymin)*sc;
+  g.strokeStyle='#999';g.lineWidth=1;g.beginPath();g.moveTo(X(xmin),Y(0));g.lineTo(X(xmax),Y(0));g.stroke();
+  g.fillStyle='#666';g.font='12px Arial';
+  for(let m=0;m<=Math.floor(xmax);m++){g.fillRect(X(m)-0.5,Y(0),1,5);g.fillText(m+' m',X(m)-8,Y(0)+17);}
+  g.fillStyle='#bbb';for(let i=0;i<=k;i+=2){const q=R.tipPath[i];g.fillRect(X(q[0])-1,Y(q[1])-1,2,2);}
+  g.strokeStyle='#5a3a1f';g.lineWidth=7;g.beginPath();g.moveTo(X(f[0][0])-34,Y(f[1][0])+10);g.lineTo(X(f[0][0]),Y(f[1][0]));g.stroke();
+  const n=f[0].length;
+  for(let i=0;i<n-1;i++){const dd=1-(1-PCTsel()/100)*i/(n-1);g.lineWidth=Math.max(1,5*Math.sqrt(dd));g.strokeStyle='#b08968';g.beginPath();g.moveTo(X(f[0][i]),Y(f[1][i]));g.lineTo(X(f[0][i+1]),Y(f[1][i+1]));g.stroke();}
+  g.fillStyle='#c21807';g.beginPath();g.arc(X(f[0][n-1]),Y(f[1][n-1]),4,0,7);g.fill();
+  const t=R.ftimes[k];
+  g.fillStyle='#333';g.font='13px Arial';g.fillText('t = '+fmt(t*1000,0)+' ms (Zeitlupe)',W-190,18);
+  if(t>=R.tvmax&&R.vBesen>R.csound){const q=R.tipPath[Math.min(k,R.tipPath.length-1)];g.strokeStyle='rgba(194,24,7,'+Math.max(0,1-(t-R.tvmax)*40)+')';g.lineWidth=2;for(let r=1;r<4;r++){g.beginPath();g.arc(X(q[0]),Y(q[1]),r*14*(1+(t-R.tvmax)*60),0,7);g.stroke();}}
+}
+function PCTsel(){return PCT[+$('P').value];}
+function play(){if(anim)cancelAnimationFrame(anim);let k=0;const step=()=>{draw(k);k++;if(k<R.frames.length)anim=requestAnimationFrame(()=>setTimeout(step,22));};step();}
+function card(t,v,cls){return '<div class="card '+(cls||'')+'"><b>'+t+'</b><span class="big">'+v+'</span></div>';}
+function show(){
+  const knall=R.vBesen>R.csound;
+  let h=card(knall?'Knall!':'Kein Knall',(knall?'':'nur ')+'Mach '+fmt(R.vBesen/R.csound,2),knall?'knall':'');
+  h+=card('Besen an der Spitze (geschätzt)',fmt(R.vBesen,0)+' m/s<br><small>'+fmt(R.vBesen*3.6,0)+' km/h, Schall: '+fmt(R.csound,0)+' m/s</small>');
+  h+=card('Endstück (letzte 3 %, gerechnet)',fmt(R.vmax,0)+' m/s<br><small>'+fmt(R.vmax*3.6,0)+' km/h</small>');
+  h+=card('Energie aus dem Schwung',fmt(R.E0,1)+' J');
+  h+=card('Arbeit durch Zug am Griff',fmt(Math.max(0,R.Whand),1)+' J');
+  h+=card('Zugkraft am Griff (Spitze)',fmt(R.Fmax,0)+' N<br><small>≈ '+fmt(R.Fmax/9.81,1)+' kg</small>');
+  const P=R.Ein;
+  h+=card('Leistung bei 1 Schlag/s',fmt(P,0)+' W<br><small>Muskeln ≈ '+fmt(P*4,0)+' W (Wirkungsgrad etwa 25 %)</small>');
+  h+=card('Energie in der Spitze (letzte 10 %)',fmt(R.tipEk,2)+' J<br><small>beim höchsten Tempo</small>');
+  $('res').innerHTML=h;
+  const tot=R.Ein||1, parts=[['Luftwiderstand',R.Wdrag,'#4a90c2'],['innere Reibung',R.Wint,'#e07b00'],['noch in der Goisel',R.Enow,'#7a0f04']];
+  let b='<div class="bar">';for(const q of parts)b+='<div style="width:'+(100*Math.max(0,q[1])/tot)+'%;background:'+q[2]+'" title="'+q[0]+'"></div>';b+='</div><div class="leg">';
+  for(const q of parts)b+='<i style="background:'+q[2]+'"></i>'+q[0]+' '+fmt(Math.max(0,q[1]),1)+' J ('+fmt(100*Math.max(0,q[1])/tot,0)+' %)';
+  b+='</div><div class="hint">Wohin die Energie geht, bis zum Ende der Rechnung (Gesamt '+fmt(tot,1)+' J). Die Energie des Knalls selbst ist sehr klein (Millijoule, siehe Akustik) und hier nicht eigens ausgewiesen.</div>';
+  $('ebox').innerHTML='<b style="color:#7a0f04">Energiebilanz</b>'+b;
+}
+function run(){
+  const p={L:+$('L').value,M:+$('M').value,tip:PCTsel(),D:+$('D').value,tipType:$('tip').value,K:+$('K').value,S:+$('S').value,V:+$('V').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value};
+  $('go').disabled=true;$('go').textContent='rechnet …';
+  setTimeout(()=>{R=simulate(p);window.__R=R;show();play();$('go').disabled=false;$('go').textContent='Knallen!';},30);
+}
+$('go').addEventListener('click',run);
+$('slow').addEventListener('click',()=>{if(R)play();});
+run();
+</script>
+</body></html>
