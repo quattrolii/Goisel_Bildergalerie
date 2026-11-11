@@ -36,11 +36,10 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <div class="wrap">
 <div>
 <fieldset><legend>Goisel</legend>
-<label>L&auml;nge (ohne Treibschnur) <span class="v" id="vL"></span></label><input type="range" id="L" min="2" max="6" step="0.25" value="4">
-<label>Gewicht <span class="v" id="vM"></span></label><input type="range" id="M" min="0.2" max="2.5" step="0.05" value="1">
-<label>Verj&uuml;ngung: Querschnitt an der Spitze <span class="v" id="vP"></span></label><input type="range" id="P" min="0" max="6" step="1" value="4">
-<label>Form der Verj&uuml;ngung</label><select id="ST"><option value="0" selected>stetig (gleichm&auml;&szlig;ig d&uuml;nner)</option><option value="3">abgetreppt in 3 Stufen</option><option value="2">abgetreppt in 2 Stufen</option></select>
-<label>Durchmesser am Griff <span class="v" id="vD"></span></label><input type="range" id="D" min="10" max="40" step="1" value="25">
+<label>Anzahl Stricke</label><select id="NS"><option value="2">2 Strick</option><option value="3">3 Strick</option><option value="4" selected>4 Strick</option><option value="5">5 Strick</option><option value="6">6 Strick</option><option value="7">7 Strick</option></select>
+<label>Strickgr&ouml;&szlig;e (nicht mischbar)</label><select id="SG"><option value="eigen">eigene Stricke (2,55 m, 64 g)</option><option value="kaelber" selected>K&auml;lberstrick 10 mm (2,6 m, ca. 88 g)</option><option value="jute">Jutestrick 12 mm (3,25 m, ca. 159 g)</option></select>
+<label>Verj&uuml;ngung</label><select id="ST"><option value="treppe" selected>abgetreppt, wie geflochten</option><option value="stetig">stetig (zum Vergleich, gleiches Gewicht)</option></select>
+<div class="hint" id="ginfo" style="margin-top:3px"></div>
 <label>Knoten (je 5 g, steif)</label><select id="KN"><option value="keine" selected>keine</option><option value="mitte">1 Knoten in der Mitte</option><option value="drei">3 Knoten verteilt</option><option value="ende">1 Knoten am Ende der Goisel</option></select>
 <label>Flechtart / Steifigkeit</label><select id="K"><option value="0.6">weich</option><option value="1" selected>mittel</option><option value="1.6">steif</option></select>
 <label>Schmierung (innere Reibung)</label><select id="S"><option value="0.004">trocken</option><option value="0.003">gewachst (au&szlig;en)</option><option value="0.0008" selected>Silikon&ouml;l (innen)</option></select>
@@ -48,7 +47,7 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <fieldset><legend>Treibschnur und Besen</legend>
 <label>Treibschnur</label><select id="ts"><option value="keine">keine (Goisel l&auml;uft spitz aus)</option><option value="rund" selected>Rundschnur</option><option value="band">Band (Nylon, 0,2 mm dick)</option></select>
 <div id="rowRund"><label>Rundschnur: Durchmesser und Material</label>
-<div style="display:flex;gap:4px"><select id="TD"><option value="1">1 mm</option><option value="2">2 mm</option><option value="3" selected>3 mm</option><option value="4">4 mm</option><option value="5">5 mm</option><option value="6">6 mm</option></select>
+<div style="display:flex;gap:4px"><select id="TD"><option value="1">1 mm</option><option value="2" selected>2 mm</option><option value="3">3 mm</option><option value="4">4 mm</option><option value="5">5 mm</option><option value="6">6 mm</option></select>
 <select id="TM"><option value="dyneema" selected>Dyneema</option><option value="vectran">Vectran</option></select></div></div>
 <div id="rowBand" style="display:none"><label>Band: Breite</label><select id="TB"><option value="5">5 mm</option><option value="10" selected>10 mm</option><option value="20">20 mm</option><option value="30">30 mm</option><option value="40">40 mm</option><option value="50">50 mm</option><option value="70">70 mm</option></select></div>
 <label>L&auml;nge der Treibschnur <span class="v" id="vTL"></span></label><input type="range" id="TL" min="0.1" max="0.3" step="0.01" value="0.2">
@@ -58,9 +57,10 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <label>Lufttemperatur <span class="v" id="vT"></span></label><input type="range" id="T" min="-10" max="30" step="1" value="10">
 </fieldset>
 <fieldset><legend>Schlag</legend>
-<label>Schwung: Tempo der Goisel auf der Laufbahn <span class="v" id="vV"></span></label><input type="range" id="V" min="4" max="25" step="1" value="12">
+<label>Schwung: Tempo der Goisel auf der Laufbahn <span class="v" id="vV"></span></label><input type="range" id="V" min="4" max="35" step="1" value="18">
 <label>Schlaufe (Radius) <span class="v" id="vA"></span></label><input type="range" id="A" min="10" max="60" step="5" value="25">
-<label>Zur&uuml;ckziehen: Tempo der Hand <span class="v" id="vZ"></span></label><input type="range" id="Z" min="0" max="14" step="0.5" value="8">
+<label>Steckenhaltung (Bahn der Stecken-Spitze)</label><select id="RK"><option value="0.7">steil: kleiner Bogen (Radius 0,7 m)</option><option value="1.4" selected>flach: gro&szlig;er Bogen (Radius 1,4 m)</option></select>
+<label>Zur&uuml;ckziehen: Tempo der Hand <span class="v" id="vZ"></span></label><input type="range" id="Z" min="0" max="20" step="0.5" value="12">
 <label>Nachf&uuml;hren nach dem Knall: Weg <span class="v" id="vN"></span></label><input type="range" id="NW" min="0" max="2.5" step="0.05" value="1.5">
 <button id="go" style="margin-top:8px">Ein Knall in Zeitlupe</button>
 </fieldset>
@@ -75,7 +75,7 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <div id="ebox" style="margin-top:8px"></div>
 <div id="sbox" style="margin-top:10px"></div>
 <div id="serbox" style="margin-top:8px;display:none"></div>
-<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft die Goisel mit dem Schwung ruhig auf ihrer Laufbahn, der vordere Teil fliegt mit diesem Tempo, dazwischen rollt die Schlaufe. Dann zieht die Hand zur&uuml;ck: Der hintere Teil l&auml;uft jetzt mit dem Hand-Tempo in die andere Richtung, die beiden Tempi addieren sich (Schwung 12 + Zur&uuml;ckziehen 8 = 20&nbsp;m/s gegeneinander). Nach dem Knall f&uuml;hrt die Hand noch ein St&uuml;ck nach und bremst dabei gleichm&auml;&szlig;ig ab; das gl&auml;ttet den &Uuml;berschwinger. Ohne Nachf&uuml;hren (0&nbsp;cm) stoppt die Hand schlagartig und es gibt einen harten Ruck. Dazu kommen Luftwiderstand und innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;). Bei abgetreppter Verj&uuml;ngung ist die Goisel am Griff und an der Spitze gleich dick wie bei der stetigen und gleich schwer, wird aber in Stufen d&uuml;nner; an jeder Stufe wird ein Teil der Welle zur&uuml;ckgeworfen. Knoten (schwarze Punkte) sind 5&nbsp;g schwer, viermal so steif und doppelt so dick wie die Goisel an der Stelle. An die Goisel schlie&szlig;t die Treibschnur an (gr&uuml;n gezeichnet): gleich dick, viel biegsamer als die geflochtene Goisel, als Band breit und mit viel Luftwiderstand. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen. Der Besen ist das ausgefranste Ende der Treibschnur; sein Gewicht ergibt sich aus Schnur und ausgefranster L&auml;nge (3&nbsp;mm Dyneema, 5&nbsp;cm: gut 0,3&nbsp;g, Krehl hatte 0,37&nbsp;g). Erst die aufgef&auml;cherten Fasern koppeln den Knall richtig an die Luft; in der Schallabsch&auml;tzung z&auml;hlt deshalb ihre Breite. Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen.</div>
+<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft die Goisel mit dem Schwung ruhig auf ihrer Laufbahn, der vordere Teil fliegt mit diesem Tempo, dazwischen rollt die Schlaufe. Dann zieht die Hand zur&uuml;ck: Der hintere Teil l&auml;uft jetzt mit dem Hand-Tempo in die andere Richtung, die beiden Tempi addieren sich (Schwung 18 + Zur&uuml;ckziehen 12 = 30&nbsp;m/s gegeneinander; Krehls 97-g-Peitsche brauchte nach der B&uuml;rger-Formel gut 40&nbsp;m/s). Nach dem Knall f&uuml;hrt die Hand noch ein St&uuml;ck nach und bremst dabei gleichm&auml;&szlig;ig ab; das gl&auml;ttet den &Uuml;berschwinger. Ohne Nachf&uuml;hren (0&nbsp;cm) stoppt die Hand schlagartig und es gibt einen harten Ruck. Dazu kommen Luftwiderstand und innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;). Die Goisel ist aus Stricken gebunden: Jeder Strick wird am Stecken doppelt gelegt, so dass die Enden gleiche Abst&auml;nde haben (Strickl&auml;nge geteilt durch doppelte Strickzahl plus eins). Wo ein Ende aufh&ouml;rt, wird die Goisel eine Stufe d&uuml;nner: abgetreppte Verj&uuml;ngung. Beim Flechten wird sie um den Faktor 1,22 k&uuml;rzer als die Stricke. Vorne folgt das konische Goisale (0,8&nbsp;m, 8 auf 3&nbsp;mm). Strickl&auml;ngen und -gewichte stammen aus unseren Bautabellen. Die eigenen Stricke sind gewogen, das Jute-Gewicht ist aus dem erwarteten Gewicht der 22-Strick-Goisel errechnet, das des K&auml;lberstricks daraus &uuml;ber den Querschnitt gesch&auml;tzt. Zum Vergleich l&auml;sst sich die gleiche Goisel stetig verj&uuml;ngt rechnen; an jeder Stufe wird ein Teil der Welle zur&uuml;ckgeworfen. Die Stecken-Spitze l&auml;uft auf einem Kreisbogen wie ein Scheibenwischer: Steil gehalten ist der Bogen klein, flach gehalten gro&szlig; und lang (je 150&nbsp;Grad). Reicht der Bogen f&uuml;r Zur&uuml;ckziehen und Nachf&uuml;hren nicht, muss die Hand am Ende abbremsen. Knoten (schwarze Punkte) sind 5&nbsp;g schwer, viermal so steif und doppelt so dick wie die Goisel an der Stelle. An die Goisel schlie&szlig;t die Treibschnur an (gr&uuml;n gezeichnet): gleich dick, viel biegsamer als die geflochtene Goisel, als Band breit und mit viel Luftwiderstand. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen. Der Besen ist das ausgefranste Ende der Treibschnur; sein Gewicht ergibt sich aus Schnur und ausgefranster L&auml;nge (3&nbsp;mm Dyneema, 5&nbsp;cm: gut 0,3&nbsp;g, Krehl hatte 0,37&nbsp;g). Erst die aufgef&auml;cherten Fasern koppeln den Knall richtig an die Luft; in der Schallabsch&auml;tzung z&auml;hlt deshalb ihre Breite. Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen.</div>
 </div></div>
 <script>
 'use strict';
@@ -83,10 +83,8 @@ const $=id=>document.getElementById(id);
 const PCT=[50,20,10,5,2,1,0.5];
 function fmt(x,d){return x.toLocaleString('de-DE',{maximumFractionDigits:d,minimumFractionDigits:d});}
 function labels(){
-  $('vL').textContent=fmt(+$('L').value,2)+' m';
-  $('vM').textContent=fmt(+$('M').value,2)+' kg';
-  $('vP').textContent=String(PCT[+$('P').value]).replace('.',',')+' %';
-  $('vD').textContent=$('D').value+' mm';
+  {const G=goiselGeom({nStr:+$('NS').value,strick:$('SG').value});
+   $('ginfo').textContent='Goisel: '+fmt(G.Lg,2)+' m lang (Geflecht '+fmt(G.Lb,2)+' m + Goisale '+fmt(G.Lgs,1)+' m), '+fmt(G.M*1000,0)+' g, '+(2*G.n)+' Enden alle '+fmt(G.u*100,0)+' cm, am Griff ca. '+fmt(G.Dg,0)+' mm dick';}
   $('vV').textContent=fmt(+$('V').value,1)+' m/s';
   $('vA').textContent=$('A').value+' cm';
   $('vT').textContent=$('T').value+' °C';
@@ -98,17 +96,14 @@ function labels(){
   $('vN').textContent=fmt(+$('NW').value*100,0)+' cm';
   $('vTc').textContent=fmt(+$('Tc').value,2)+' s';}
 document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',labels));
-labels();
 
 // Aufbau der Goisel als Gliederkette: verjuengte Goisel (stetig oder in Stufen), Knoten, Treibschnur, Besen
 function buildChain(p){
-  const Lg=p.L, ts=p.tsType||'keine', lT=ts==='keine'?0:p.tsL, L=Lg+lT;
+  const G=goiselGeom(p);
+  const Lg=G.Lg, ts=p.tsType||'keine', lT=ts==='keine'?0:p.tsL, L=Lg+lT;
   const N=p.N||(lT>0?100:90), ds=L/(N-1);
-  const tipFrac=p.tip/100, st=p.stufen||0;
-  // Querschnitt relativ zum Griff, u = Ort/Goisellaenge. Stufen: gleicher Anfang und gleiches Ende wie stetig
-  const prof=u=>{if(st<2)return 1-(1-tipFrac)*u;const k=Math.min(st-1,Math.floor(u*st));return 1-(1-tipFrac)*k/(st-1);};
-  let I=0;for(let j=0;j<4000;j++)I+=prof((j+0.5)/4000)/4000;
-  const mu0=p.M/(Lg*I);   // gleiches Gesamtgewicht bei jeder Form
+  const Dg=G.Dg, mu0=G.mu(0), muTipG=G.mu(Lg-1e-6);
+  p={...p,D:Dg};
   const s=new Float64Array(N), del=new Float64Array(N), mu=new Float64Array(N), m=new Float64Array(N), im=new Float64Array(N);
   // Treibschnur. Rundschnur geflochten (Dyneema 970 kg/m3, Vectran 1400 kg/m3, 80 % Fuellgrad), Biegesteifigkeit wie die
   // Goisel-Flechtung (Vectran 1,5-fach), halbiert fuer die lockere Schnur. Band: Nylon 1140 kg/m3, 0,2 mm dick, E = 2,5 GPa.
@@ -119,12 +114,12 @@ function buildChain(p){
   else if(ts==='band'){const bw=(p.tsB||10)/1000,th=0.0002;
     TS={mu:1140*bw*th,w:bw,cd:1.9,B:2.5e9*bw*Math.pow(th,3)/12,dq:bw*th/(Math.PI*Math.pow(p.D/1000,2)/4),dFray:bw,dPlain:0.002};}
   const B=new Float64Array(N), eta=new Float64Array(N), w=new Float64Array(N), cd=new Float64Array(N);
-  const B0=0.56*p.K*Math.pow(p.D/25,4);
   for(let i=0;i<N;i++){
     s[i]=i*ds;
     if(s[i]<=Lg+1e-9){
-      del[i]=prof(Math.min(1,s[i]/Lg));mu[i]=mu0*del[i];
-      B[i]=B0*del[i]*del[i];w[i]=p.D/1000*Math.sqrt(del[i]);cd[i]=1.2;
+      // Biegesteifigkeit ~ Querschnitt^2, geeicht wie bisher: 0,56 N m2 bei 0,49 kg/m (Flechtart-Faktor K)
+      mu[i]=G.mu(Math.min(s[i],Lg-1e-6));del[i]=mu[i]/mu0;
+      B[i]=0.56*p.K*Math.pow(mu[i]/0.49,2);w[i]=G.w(Math.min(s[i],Lg-1e-6));cd[i]=1.2;
     }else{
       // gedrehte Schnur bzw. flaches Band biegt sich viel leichter als die geflochtene Goisel
       del[i]=TS.dq;mu[i]=TS.mu;B[i]=TS.B;w[i]=TS.w;cd[i]=TS.cd;
@@ -138,11 +133,31 @@ function buildChain(p){
   for(let i=0;i<N;i++)eta[i]=B[i]*p.S;
   // Ausgefranstes Ende (Besen): Masse = Schnur auf der ausgefransten Laenge. Die aufgefaecherten Fasern koppeln den Knall
   // an die Luft (wirksame Dicke fuer die Schallabschaetzung); ohne Ausfransung zaehlt nur die blanke Schnur.
-  const lF=p.fray??0.05, dTip=p.D/1000*Math.sqrt(tipFrac), muEnd=TS?TS.mu:mu0*tipFrac;
+  const lF=p.fray??0.05, dTip=G.w(Lg-1e-6), muEnd=TS?TS.mu:muTipG;
   const besen=p.cracker??muEnd*lF;
   const dEff=lF>0?(TS?TS.dFray:4*dTip):(TS?TS.dPlain:dTip);
   m[N-1]+=besen;for(let i=0;i<N;i++)im[i]=1/m[i];
-  return {N,ds,L,Lg,lT,ts,s,del,mu,m,im,B,eta,w,cd,besen,lF,dEff,knotIdx,nG:Math.floor(Lg/ds+1e-9),mu0};
+  return {N,ds,L,Lg,lT,ts,s,del,mu,m,im,B,eta,w,cd,besen,lF,dEff,knotIdx,nG:Math.floor(Lg/ds+1e-9),mu0,M:G.M,G};
+}
+// Strickgroessen (NAS: Goiselbau/Goisel einteilung.xls, Strickkosten.xlsx, 98 Goiselvarianten.xlsx).
+// Eigene Stricke gewogen (64 g auf 2,55 m). Jute: aus dem erwarteten Gewicht der 22-Strick (2860 g aus 58,5 m Jutestrick).
+// Kaelberstrick: daraus ueber den Querschnitt (10 mm statt 12 mm) geschaetzt.
+const STRICK={eigen:{l:2.55,g:64,d:8},kaelber:{l:2.6,g:88,d:10},jute:{l:3.25,g:159,d:12}};
+const SHRINK=1.223, GOISALE=0.8;
+// Jeder Strick wird am Stecken doppelt gelegt, so dass die 2n Enden gleiche Abstaende haben (Strick/(2n+1)):
+// Strick k hat die Schenkel k und 2n+1-k. Beim Flechten wird die Goisel um den Schrumpffaktor 1,223 kuerzer.
+// Vorne folgt das konische Goisale (0,8 m, 8 mm auf 3 mm), daran die Treibschnur.
+function goiselGeom(p){
+  const S=STRICK[p.strick||'kaelber'], n=p.nStr||4, legs=2*n;
+  const u=S.l/(2*n+1)/SHRINK, mus=S.g/1000/S.l*SHRINK, dS=S.d/1000, Lb=legs*u, Lg=Lb+GOISALE;
+  const muT=x=>{if(x<Lb)return (legs-Math.floor(x/u))*mus;const dd=0.008-0.005*Math.min(1,(x-Lb)/GOISALE);return mus*Math.pow(dd/dS,2);};
+  let M=0;const nn=4000;for(let j=0;j<nn;j++)M+=muT((j+0.5)/nn*Lg)*Lg/nn;
+  let mu=muT;
+  if(p.form==='stetig'){ // gleiche Masse, gleicher Anfang und gleiches Ende, aber gleichmaessig duenner
+    const a=muT(0),b=muT(Lg-1e-6),lin=x=>a+(b-a)*x/Lg;let M2=0;for(let j=0;j<nn;j++)M2+=lin((j+0.5)/nn*Lg)*Lg/nn;
+    const f=M/M2;mu=x=>lin(x)*f;}
+  const w=x=>dS*Math.sqrt(mu(x)/mus);
+  return {n,u,Lb,Lg,Lgs:GOISALE,M,mu,w,Dg:dS*Math.sqrt(legs)*1000,mus};
 }
 function simulate(p){
   const C=buildChain(p);
@@ -173,6 +188,11 @@ function simulate(p){
   // Danach fuehrt sie noch den Weg dN nach und bremst dabei gleichmaessig ab (glaettet den Ueberschwinger).
   const pullV=p.Z, dN=p.NW??0.5;
   let handX=0, phaseH=0, decA=0, loopS=xl, hvS=0, tCrackH=0, xCrackH=0, FmaxPost=0, Wnach=0, FmaxR=0, tR=0;
+  // Bahn der Stecken-Spitze: Kreisbogen wie ein Scheibenwischer (steil: kleiner Radius, flach: grosser Radius).
+  // Verfuegbar sind 150 Grad Bogen; reicht die Bahn nicht, muss die Hand am Ende abbremsen (hoechstens 300 m/s2).
+  const Rk=p.Rk||1.4, sMax=Rk*150*Math.PI/180, aLim=300;
+  let sH=0, arcEnd=false, hvx=0, hvy=0;
+  const bx0=x[0],by0=y[0],bx1=x[1],by1=y[1];
   const tEnd=Math.min(2.5,2*lu/(U+pullV)*1.6+2*dN/Math.max(pullV,1)+0.1);
   let Pxo=0,Pyo=0;for(let i=2;i<N;i++){Pxo+=m[i]*vx[i];Pyo+=m[i]*vy[i];}
   let Fs=0;
@@ -216,12 +236,16 @@ function simulate(p){
       hvS+=(pullV-hvS)*Math.min(1,dt/0.03);
       if(vmax>30&&tipv<0.6*vmax&&t>tvmax){phaseH=1;tCrackH=t;xCrackH=handX;decA=Math.min(hvS*hvS/(2*Math.max(dN,1e-3)),hvS/0.01);if(hvS<1e-6)phaseH=2;}
     }else if(phaseH===1){hvS=Math.max(0,hvS-decA*dt);if(hvS<=0)phaseH=2;}
+    if(!catching&&hvS>0&&(sMax-sH)<hvS*hvS/(2*aLim)){hvS=Math.max(0,hvS-aLim*dt);arcEnd=true;if(hvS<=0&&phaseH>0)phaseH=2;}
     let hv=catching?0:hvS;
     if(catching){
       // Hand als gedaempfte Feder: MH a = -KH d - CH v - (Kraft der Goisel auf die Hand = -F)
       hxv+=(-KH*hdx-CH*hxv-lFx)/MH*dt;hyv+=(-KH*hdy-CH*hyv-lFy)/MH*dt;hdx+=hxv*dt;hdy+=hyv*dt;
       x[0]=ox[0]+hxv*dt;x[1]=ox[1]+hxv*dt;y[0]=oy[0]+hyv*dt;y[1]=oy[1]+hyv*dt;
-    }else{x[0]=ox[0]-hv*dt;x[1]=ox[1]-hv*dt;y[0]=oy[0];y[1]=oy[1];handX-=hv*dt;}
+    }else{
+      sH+=hv*dt;const ph=Math.min(sH,sMax)/Rk,ax=-Rk*Math.sin(ph),ay=-Rk*(1-Math.cos(ph));
+      hvx=-hv*Math.cos(ph);hvy=-hv*Math.sin(ph);x[0]=bx0+ax;x[1]=bx1+ax;y[0]=by0+ay;y[1]=by1+ay;handX=-sH;
+    }
     for(let it=0;it<(p.it||10);it++){
       for(let par=0;par<2;par++){
         for(let i=par;i<N-1;i+=2){
@@ -232,7 +256,7 @@ function simulate(p){
       }
     }
     for(let i=0;i<N;i++){vx[i]=(x[i]-ox[i])/dt;vy[i]=(y[i]-oy[i])/dt;}
-    if(catching){vx[0]=vx[1]=hxv;vy[0]=vy[1]=hyv;}else{vx[0]=vx[1]=-hv;vy[0]=vy[1]=0;}
+    if(catching){vx[0]=vx[1]=hxv;vy[0]=vy[1]=hyv;}else{vx[0]=vx[1]=hvx;vy[0]=vy[1]=hvy;}
     // Kraft der Hand auf die Goisel aus der Impulsbilanz: dP/dt = F_Hand + Summe der aeusseren Kraefte
     let Px=0,Py=0;for(let i=2;i<N;i++){Px+=m[i]*vx[i];Py+=m[i]*vy[i];}
     const Fx=(Px-Pxo)/dt-Fdx,Fy=(Py-Pyo)/dt-Fdy;Pxo=Px;Pyo=Py;
@@ -240,7 +264,7 @@ function simulate(p){
     lFx=Fx;lFy=Fy;
     if((phaseH>0||catching)&&t>tvmax+0.004&&Fs>FmaxR){FmaxR=Fs;tR=t-tvmax;}
     if(catching){const pw=(Fx*hxv+Fy*hyv)*dt;Whand+=pw;Wcatch+=pw;Wdamp+=CH*(hxv*hxv+hyv*hyv)*dt;if(Fs>FmaxC)FmaxC=Fs;}
-    else{if(steps>20){if(phaseH===0){if(Fs>Fmax)Fmax=Fs;}else if(Fs>FmaxPost)FmaxPost=Fs;Fsum+=Fs*dt;Fn+=dt;}Whand+=-Fx*hv*dt;if(phaseH>0)Wnach+=-Fx*hv*dt;}
+    else{if(steps>20){if(phaseH===0){if(Fs>Fmax)Fmax=Fs;}else if(Fs>FmaxPost)FmaxPost=Fs;Fsum+=Fs*dt;Fn+=dt;}const pwH=(Fx*hvx+Fy*hvy)*dt;Whand+=pwH;if(phaseH>0)Wnach+=pwH;}
     if(catchT>0&&t>=nextRec){const [ka,ua]=energy();rec.push([t,Fs,catching?1:0,ka+ua,Wcatch,Wdrag,Wint]);nextRec+=5e-4;}
     // Energiekorrektur: Das Rechenverfahren (Projektion auf feste Gliedlaengen) verliert selbst Energie.
     // Diesen rein numerischen Verlust geben wir zurueck, so dass nur Luftwiderstand und innere Reibung Energie kosten.
@@ -265,7 +289,7 @@ function simulate(p){
   const kd=rho*1.2*C.dEff*Math.max(C.lF,0.02)*0.05/Math.max(mCr,1e-6);
   const vBesen=vmax*Math.sqrt(mEnd/mCr)/Math.sqrt(1+kd);
   const wDraw=Array.from(w,v=>v*1000), nG=Math.floor(Lg/ds+1e-9);
-  return {vBesen,mEnd,mCr,frames,ftimes,tipPath,vmax,tvmax,superT,csound,E0,Whand,Ein,Wdrag,Wint,Wrest,Enow,Fmax,Fmean:Fn?Fsum/Fn:0,tipEk,steps,L,Lg,lT,tsType:ts,besen,lF:C.lF,dEff:C.dEff,wDraw,nG,knotIdx:C.knotIdx,rho,T:p.T,tEnd:t,handX,rec,tC0,Wcatch,Wdamp,FmaxC,EC0,P0,M:p.M,catching,FmaxPost,Wnach,FmaxR,tR,pullDist:-xCrackH,nachDist:xCrackH-handX,
+  return {vBesen,mEnd,mCr,frames,ftimes,tipPath,vmax,tvmax,superT,csound,E0,Whand,Ein,Wdrag,Wint,Wrest,Enow,Fmax,Fmean:Fn?Fsum/Fn:0,tipEk,steps,L,Lg,lT,tsType:ts,besen,lF:C.lF,dEff:C.dEff,wDraw,nG,knotIdx:C.knotIdx,rho,T:p.T,tEnd:t,handX,rec,tC0,Wcatch,Wdamp,FmaxC,EC0,P0,M:C.M,catching,FmaxPost,Wnach,FmaxR,tR,pullDist:-xCrackH,nachDist:xCrackH-handX,arcEnd,Rk,sMax,hyMin:Math.min(...frames.map(f=>f[1][0])),
     hxMin:Math.min(...frames.map(f=>f[0][0]))};
 }
 
@@ -274,7 +298,7 @@ let R=null,anim=null;
 function draw(k){
   const f=R.frames[k],W=cv.width,H=cv.height;
   g.clearRect(0,0,W,H);
-  let xmin=Math.min(-0.12*R.L,(R.hxMin??0)-0.3),xmax=1.05*R.L,ymin=-0.06*R.L,ymax=0.18*R.L;
+  let xmin=Math.min(-0.12*R.L,(R.hxMin??0)-0.3),xmax=1.05*R.L,ymin=Math.min(-0.06*R.L,(R.hyMin??0)-0.2),ymax=0.18*R.L;
   for(const q of R.tipPath){xmin=Math.min(xmin,q[0]);xmax=Math.max(xmax,q[0]);ymax=Math.max(ymax,q[1]*1.15);ymin=Math.min(ymin,q[1]*1.15);}
   const sc=Math.min((W-50)/(xmax-xmin),(H-40)/(ymax-ymin));
   const X=v=>{const q=30+(v-xmin)*sc;return MIR?W-q:q;}, Y=v=>H-25-(v-ymin)*sc;
@@ -303,6 +327,7 @@ function show(){
   h+=card('Energie aus dem Schwung',fmt(R.E0,1)+' J');
   h+=card('Arbeit durch Zurückziehen',fmt(Math.max(0,R.Whand-R.Wnach),1)+' J<br><small>Weg der Hand bis zum Knall '+fmt(R.pullDist*100,0)+' cm</small>');
   h+=card('Zugkraft beim Zurückziehen',fmt(R.Fmax,0)+' N<br><small>≈ '+fmt(R.Fmax/9.81,1)+' kg</small>');
+  h+=card('Bahn der Stecken-Spitze',fmt((R.pullDist+R.nachDist)*100,0)+' cm<br><small>von '+fmt(R.sMax*100,0)+' cm Bogen'+(R.arcEnd?'; reicht nicht, Hand muss am Ende abbremsen':'')+'</small>',R.arcEnd?'knall':'');
   h+=card('Ruck nach dem Knall (Überschwinger)',fmt(R.FmaxR,0)+' N<br><small>'+fmt(R.tR*1000,0)+' ms nach dem Knall; nachgeführt '+fmt(R.nachDist*100,0)+' cm</small>');
   const P=R.E0+R.Whand-R.Wcatch;
   h+=card('Leistung bei 1 Schlag/s',fmt(P,0)+' W<br><small>Muskeln ≈ '+fmt(P*4,0)+' W (Wirkungsgrad etwa 25 %)</small>');
@@ -456,7 +481,7 @@ function showSeries(){
   q.fillStyle='#333';q.fillText('Kraft an der Hand',x0+4,y0+12);
 }
 function setMode(md){MODE=md;MIR=false;LBL='';for(const id of ['res','ebox','sbox'])$(id).style.display=md==='one'?'':'none';$('serbox').style.display=md==='four'?'':'none';}
-function params(){return {L:+$('L').value,M:+$('M').value,tip:PCTsel(),stufen:+$('ST').value,knoten:$('KN').value,D:+$('D').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,V:+$('V').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,Tc:+$('Tc').value,NW:+$('NW').value};}
+function params(){return {nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,V:+$('V').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,Tc:+$('Tc').value,NW:+$('NW').value};}
 function run4(){
   const p=params();$('go4').disabled=true;$('go4').textContent='rechnet …';
   setTimeout(()=>{S=simulateSeries(p);window.__S=S;setMode('four');showSeries();playSeries();$('go4').disabled=false;$('go4').textContent='4 Knalle!';},30);
@@ -471,6 +496,7 @@ function fit(){try{const f=window.frameElement;if(f){const h=Math.ceil(document.
 new ResizeObserver(fit).observe(document.body);window.addEventListener('resize',fit);
 $('go').addEventListener('click',run);
 $('go4').addEventListener('click',run4);
+labels();
 $('slow').addEventListener('click',()=>{if(MODE==='four'&&S)playSeries();else if(R)play();});
 run();
 </script>
