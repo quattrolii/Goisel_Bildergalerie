@@ -309,7 +309,7 @@ function run(){
   setTimeout(()=>{R=simulate(p);window.__R=R;show();play();$('go').disabled=false;$('go').textContent='Knallen!';},30);
 }
 // Eingebettet als srcdoc-iframe: Hoehe des Rahmens an den Inhalt anpassen
-function fit(){try{const f=window.frameElement;if(f)f.style.height=(document.documentElement.scrollHeight+4)+'px';}catch(e){}}
+function fit(){try{const f=window.frameElement;if(f){const h=Math.ceil(document.body.getBoundingClientRect().height)+6;if(Math.abs(f.offsetHeight-h)>3)f.style.height=h+'px';}}catch(e){}}
 new ResizeObserver(fit).observe(document.body);window.addEventListener('resize',fit);
 $('go').addEventListener('click',run);
 $('slow').addEventListener('click',()=>{if(R)play();});
