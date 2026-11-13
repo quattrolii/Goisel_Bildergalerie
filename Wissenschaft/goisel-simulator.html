@@ -57,8 +57,6 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <label>Lufttemperatur <span class="v" id="vT"></span></label><input type="range" id="T" min="-10" max="30" step="1" value="10">
 </fieldset>
 <fieldset><legend>Schlag</legend>
-<button id="opt" style="margin-bottom:8px;background:#2f6f3e">Beste Einstellung suchen</button>
-<div class="hint" id="optinfo" style="margin-top:0"></div>
 <label>Steckenhaltung (Abstand der Stecken-Spitze zur K&ouml;rperachse)</label><select id="RK"><option value="0.7">steil: kleiner Radius (0,7 m)</option><option value="1.4" selected>flach: gro&szlig;er Radius (1,4 m)</option></select>
 <label>Drehtempo des Knallers <span class="v" id="vW"></span></label><input type="range" id="W" min="200" max="1000" step="10" value="550">
 <div class="hint" id="winfo" style="margin-top:2px"></div>
@@ -68,7 +66,12 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 </fieldset>
 <fieldset><legend>4 Knalle hintereinander</legend>
 <div class="hint" id="thinfo" style="margin-top:0"></div>
-<div class="hint" style="margin-top:0">Knall auf Knall in einem Zug, von oben gesehen: Der Knaller dreht sich nach links und rechts, der Stecken mit Steckenhaltung und Drehtempo von oben.</div><button id="go4" style="margin-top:8px">4 Knalle!</button>
+<label>Umkehr: Dauer <span class="v" id="vTR"></span></label><input type="range" id="TR" min="20" max="120" step="5" value="50">
+<label>Nachf&uuml;hr-Anteil im Bogen <span class="v" id="vS0"></span></label><input type="range" id="S0" min="10" max="45" step="5" value="25">
+<div class="hint" style="margin-top:0">Knall auf Knall in einem Zug, von oben gesehen: Der Knaller dreht sich nach links und rechts, der Stecken mit Steckenhaltung und Drehtempo von oben; die Umkehr am Ende jedes Bogens dauert die eingestellte Zeit, danach l&auml;uft der n&auml;chste Bogen erst mit dem Nachf&uuml;hr-Anteil des Drehtempos an.</div>
+<button id="opt" style="margin-top:8px;background:#2f6f3e">Beste Technik suchen (wie im Video)</button>
+<div class="hint" id="optinfo" style="margin-top:0"></div>
+<button id="go4" style="margin-top:8px">4 Knalle!</button>
 </fieldset>
 <div class="row"><button id="slow">Nochmal abspielen</button></div>
 </div>
@@ -78,7 +81,7 @@ canvas{width:100%;height:auto;border:1px solid var(--rand);border-radius:6px;bac
 <div id="ebox" style="margin-top:8px"></div>
 <div id="sbox" style="margin-top:10px"></div>
 <div id="serbox" style="margin-top:8px;display:none"></div>
-<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft die Goisel mit dem Schwung aus dem Bogen ruhig auf ihrer Laufbahn, der vordere Teil fliegt mit diesem Tempo, dazwischen rollt die Schlaufe. Dann zieht die Hand zur&uuml;ck: Der hintere Teil l&auml;uft jetzt mit dem Hand-Tempo in die andere Richtung, die beiden Tempi addieren sich (mit den Standardwerten 26&nbsp;m/s Schwung aus dem flachen Bogen + 8&nbsp;m/s Zur&uuml;ckziehen = 34&nbsp;m/s gegeneinander; Krehls 97-g-Peitsche brauchte nach der B&uuml;rger-Formel gut 40&nbsp;m/s). Nach dem Knall f&uuml;hrt die Hand noch ein St&uuml;ck nach und bremst dabei gleichm&auml;&szlig;ig ab; das gl&auml;ttet den &Uuml;berschwinger. Ohne Nachf&uuml;hren (0&nbsp;cm) stoppt die Hand schlagartig und es gibt einen harten Ruck. Dazu kommen Luftwiderstand und innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;). Die Goisel ist aus Stricken gebunden: Jeder Strick wird am Stecken doppelt gelegt, so dass die Enden gleiche Abst&auml;nde haben (Strickl&auml;nge geteilt durch doppelte Strickzahl plus eins). Wo ein Ende aufh&ouml;rt, wird die Goisel eine Stufe d&uuml;nner: abgetreppte Verj&uuml;ngung. Beim Flechten wird sie um den Faktor 1,22 k&uuml;rzer als die Stricke. Vorne folgt das konische Goisale, je nach Strickgr&ouml;&szlig;e passend dick und lang, mit Dyneema-Spitze. Strickl&auml;ngen, -gewichte und Goisale-Ma&szlig;e stammen aus unserer Bautabelle (siehe <a href="/Einteilung.htm">Einteilung</a>). Zum Vergleich l&auml;sst sich die gleiche Goisel stetig verj&uuml;ngt rechnen; an jeder Stufe wird ein Teil der Welle zur&uuml;ckgeworfen. Der Schwung kommt aus der Drehung des Knallers: Von oben gesehen steht er im Mittelpunkt und dreht sich nach links und rechts; die Stecken-Spitze l&auml;uft auf einem Kreisbogen um ihn herum, flach gehalten weit au&szlig;en (gro&szlig;er Radius, lange Bahn), steil gehalten nah am K&ouml;rper. Die gestreckte Goisel dreht mit; ihre Mitte l&auml;uft auf dem Radius Stecken-Spitze plus halbe Goisell&auml;nge und ist deshalb viel schneller als die Stecken-Spitze. Danach zieht die Hand zur&uuml;ck und f&uuml;hrt nach. Bei &bdquo;4 Knalle&ldquo; wird diese Drehung hin und her in einem Zug gerechnet. Knoten (schwarze Punkte) sind 5&nbsp;g schwer, viermal so steif und doppelt so dick wie die Goisel an der Stelle. An die Goisel schlie&szlig;t die Treibschnur an (gr&uuml;n gezeichnet): gleich dick, viel biegsamer als die geflochtene Goisel, als Band breit und mit viel Luftwiderstand. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen. Der Besen ist das ausgefranste Ende der Treibschnur; sein Gewicht ergibt sich aus Schnur und ausgefranster L&auml;nge (3&nbsp;mm Dyneema, 5&nbsp;cm: gut 0,3&nbsp;g, Krehl hatte 0,37&nbsp;g). Erst die aufgef&auml;cherten Fasern koppeln den Knall richtig an die Luft; in der Schallabsch&auml;tzung z&auml;hlt deshalb ihre Breite. Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen. Der Kraftaufwand wird in 10 Stufen bewertet, nach der Muskelleistung im Vergleich mit Gehen, Radfahren und Laufen (Belastungswerte nach dem Compendium of Physical Activities, Person mit 75&nbsp;kg). &bdquo;Beste Einstellung suchen&ldquo; probiert selbst viele Kombinationen der Technik-Regler (Steckenhaltung, Drehtempo, Schlaufe, Zur&uuml;ckziehen, Nachf&uuml;hren) durch und stellt die Regler auf die Kombination, die sicher knallt (mindestens Mach&nbsp;1,3) und dabei m&ouml;glichst wenig Kraft kostet; das kann je nach Goisel einige Sekunden bis gut eine Minute dauern.</div>
+<div class="hint">Rechenmodell: verj&uuml;ngte, undehnbare Goisel mit Biegesteifigkeit, Griff fest, Spitze frei. Am Anfang l&auml;uft die Goisel mit dem Schwung aus dem Bogen ruhig auf ihrer Laufbahn, der vordere Teil fliegt mit diesem Tempo, dazwischen rollt die Schlaufe. Dann zieht die Hand zur&uuml;ck: Der hintere Teil l&auml;uft jetzt mit dem Hand-Tempo in die andere Richtung, die beiden Tempi addieren sich (mit den Standardwerten 26&nbsp;m/s Schwung aus dem flachen Bogen + 8&nbsp;m/s Zur&uuml;ckziehen = 34&nbsp;m/s gegeneinander; Krehls 97-g-Peitsche brauchte nach der B&uuml;rger-Formel gut 40&nbsp;m/s). Nach dem Knall f&uuml;hrt die Hand noch ein St&uuml;ck nach und bremst dabei gleichm&auml;&szlig;ig ab; das gl&auml;ttet den &Uuml;berschwinger. Ohne Nachf&uuml;hren (0&nbsp;cm) stoppt die Hand schlagartig und es gibt einen harten Ruck. Dazu kommen Luftwiderstand und innere Reibung beim Biegen (abh&auml;ngig von der Schmierung, w&auml;chst mit der Steifigkeit, also mit r&#8308;). Die Goisel ist aus Stricken gebunden: Jeder Strick wird am Stecken doppelt gelegt, so dass die Enden gleiche Abst&auml;nde haben (Strickl&auml;nge geteilt durch doppelte Strickzahl plus eins). Wo ein Ende aufh&ouml;rt, wird die Goisel eine Stufe d&uuml;nner: abgetreppte Verj&uuml;ngung. Beim Flechten wird sie um den Faktor 1,22 k&uuml;rzer als die Stricke. Vorne folgt das konische Goisale, je nach Strickgr&ouml;&szlig;e passend dick und lang, mit Dyneema-Spitze. Strickl&auml;ngen, -gewichte und Goisale-Ma&szlig;e stammen aus unserer Bautabelle (siehe <a href="/Einteilung.htm">Einteilung</a>). Zum Vergleich l&auml;sst sich die gleiche Goisel stetig verj&uuml;ngt rechnen; an jeder Stufe wird ein Teil der Welle zur&uuml;ckgeworfen. Der Schwung kommt aus der Drehung des Knallers: Von oben gesehen steht er im Mittelpunkt und dreht sich nach links und rechts; die Stecken-Spitze l&auml;uft auf einem Kreisbogen um ihn herum, flach gehalten weit au&szlig;en (gro&szlig;er Radius, lange Bahn), steil gehalten nah am K&ouml;rper. Die gestreckte Goisel dreht mit; ihre Mitte l&auml;uft auf dem Radius Stecken-Spitze plus halbe Goisell&auml;nge und ist deshalb viel schneller als die Stecken-Spitze. Danach zieht die Hand zur&uuml;ck und f&uuml;hrt nach. Bei &bdquo;4 Knalle&ldquo; wird diese Drehung hin und her in einem Zug gerechnet. Knoten (schwarze Punkte) sind 5&nbsp;g schwer, viermal so steif und doppelt so dick wie die Goisel an der Stelle. An die Goisel schlie&szlig;t die Treibschnur an (gr&uuml;n gezeichnet): gleich dick, viel biegsamer als die geflochtene Goisel, als Band breit und mit viel Luftwiderstand. Das Tempo des Endst&uuml;cks (letzte 3&nbsp;% der L&auml;nge) wird direkt gerechnet. Den Besen ganz am Ende sch&auml;tzen wir daraus mit dem Energieansatz von B&uuml;rger und Krehl: Beim letzten Umschlagen geht die Energie des Endst&uuml;cks in den leichten Besen. Der Besen ist das ausgefranste Ende der Treibschnur; sein Gewicht ergibt sich aus Schnur und ausgefranster L&auml;nge (3&nbsp;mm Dyneema, 5&nbsp;cm: gut 0,3&nbsp;g, Krehl hatte 0,37&nbsp;g). Erst die aufgef&auml;cherten Fasern koppeln den Knall richtig an die Luft; in der Schallabsch&auml;tzung z&auml;hlt deshalb ihre Breite. Geknallt wird, wenn der Besen schneller als der Schall ist. Das ist ein vereinfachtes Modell: Es rechnet nur die Schlaufe, nicht das ganze Ausholen, und die Werte f&uuml;r Reibung und Steifigkeit sind gesch&auml;tzt. Gut geeignet zum Vergleichen (was passiert, wenn &hellip;), nicht f&uuml;r exakte Zahlen. Der Kraftaufwand wird in 10 Stufen bewertet, nach der Muskelleistung im Vergleich mit Gehen, Radfahren und Laufen (Belastungswerte nach dem Compendium of Physical Activities, Person mit 75&nbsp;kg). &bdquo;Beste Technik suchen (wie im Video)&ldquo; bei &bdquo;4 Knalle hintereinander&ldquo; probiert selbst viele Kombinationen aus Steckenhaltung, Drehtempo, Umkehrdauer und Nachf&uuml;hr-Anteil durch und stellt die Regler auf die Kombination, die alle Knalle sicher bringt (mindestens Mach&nbsp;1,3) bei m&ouml;glichst wenig Kraft und vor allem wenig Ruck beim Umschlagen &ndash; also mit wenig &Uuml;berschwingen, wie es in den eigenen Videos aussieht; das kann je nach Goisel einige Sekunden bis gut eine Minute dauern.</div>
 </div></div>
 <script>
 'use strict';
@@ -112,6 +115,8 @@ function labels(){
   $('vZ').textContent=fmt(+$('Z').value,1)+' m/s';
   $('vN').textContent=fmt(+$('NW').value*100,0)+' cm';
   {const q={Rk:+$('RK').value,nStr:+$('NS').value,strick:$('SG').value};$('thinfo').innerHTML='Drehung nach jeder Seite: <b>± '+Math.round(autoTH(q))+'°</b>, wie ein Knaller an die Goisel angepasst'+(q.Rk<1?'. <b>Hinweis:</b> Bei steiler Haltung läuft die Goisel in Schleifen über den Kopf; das bildet diese Rechnung von oben nicht ab.':'');}
+  $('vTR').textContent=$('TR').value+' ms';
+  $('vS0').textContent=$('S0').value+' %';
 }
 document.querySelectorAll('input,select').forEach(e=>e.addEventListener('input',labels));
 
@@ -518,7 +523,7 @@ function simulateTop(p){
     Wint+=pInt*dt;Wdrag+=pDrag*dt;
     for(let i=0;i<N;i++){ox[i]=x[i];oy[i]=y[i];vx[i]+=fx[i]*im[i]*dt;vy[i]+=fy[i]*im[i]*dt;x[i]+=vx[i]*dt;y[i]+=vy[i]*dt;}
     const hn=hpos();x[0]=hn[0];y[0]=hn[1];
-    for(let it=0;it<10;it++)for(let par=0;par<2;par++)for(let i=par;i<N-1;i+=2){
+    for(let it=0;it<(p.it||10);it++)for(let par=0;par<2;par++)for(let i=par;i<N-1;i+=2){
       const dx=x[i+1]-x[i],dy=y[i+1]-y[i];const d=Math.hypot(dx,dy)||1e-12;const wsum=im[i]+im[i+1];
       const cc=(d-rest[i])/wsum/d;x[i]+=im[i]*cc*dx;y[i]+=im[i]*cc*dy;x[i+1]-=im[i+1]*cc*dx;y[i+1]-=im[i+1]*cc*dy;
     }
@@ -568,7 +573,7 @@ let S=null,MODE='one',MIR=false,LBL='';
 function autoTH(p){const G=goiselGeom(p);const rM=(p.Rk||1.4)+G.Lg/2;return Math.max(70,Math.min(170,(p.arcM||5.76)/rM*180/Math.PI));}
 function simulateSeries(p){
   // Start: gerade Goisel, die vom Ausholen noch nachschwingt (gegen die erste Drehrichtung), wie nach einem Knall
-  const r=simulateTop({...p,NH:4,TH:p.THs||autoTH(p),W:p.Ws||p.W,Rk:p.Rk,spin:p.spin??-0.5});
+  const r=simulateTop({...p,NH:p.NH||4,TH:p.THs||autoTH(p),W:p.Ws||p.W,Rk:p.Rk,spin:p.spin??-0.5});
   // Knall der naechstgelegenen Umkehr zuordnen (Fenster bis zur Mitte zwischen zwei Umkehrpunkten)
   const rev=r.ST.map(q=>q.tRev), n=rev.length, out=[];
   for(let j=0;j<n;j++){
@@ -647,50 +652,71 @@ function setMode(md){MODE=md;MIR=false;LBL='';cv.height=md==='four'?440:300;for(
 // Schwung aus der Drehung des Knallers (von oben gesehen: Knaller im Mittelpunkt, Stecken-Spitze auf dem Radius Rk). Die gestreckte Goisel dreht mit; ihre Mitte laeuft auf dem Radius
 // Bogen + halbe Goisellaenge und ist dadurch schneller als die Stecken-Spitze. Flach (grosser Radius) gibt mehr Schwung.
 function swing(q){const G=goiselGeom(q),w=q.W*Math.PI/180;return {arc:q.Rk*Math.PI,T:Math.PI/w,vTip:w*q.Rk,V:w*(q.Rk+G.Lg/2),w};}
-function params(){const q={Rk:+$('RK').value,W:+$('W').value,nStr:+$('NS').value,strick:$('SG').value};const sw=swing(q);return {V:sw.V,sweepT:sw.T,vTip:sw.vTip,nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,W:+$('W').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,NW:+$('NW').value};}
-// ================= Beste Einstellung suchen =================
-// Sucht unter den Technik-Reglern (Steckenhaltung, Drehtempo, Schlaufe, Zurueckziehen, Nachfuehren) die
-// Kombination, die sicher knallt (Mach >= 1,3) und dabei moeglichst wenig Arbeit und Kraft kostet. Die
-// Goisel selbst (Stricke, Treibschnur, Besen, Wetter) bleibt so, wie der Nutzer sie eingestellt hat.
-// Suche mit gröberem N (schneller, ~0,5 s je Versuch); dabei zeigt sich die Goisel rechnerisch etwas
-// schwächer als bei voller Aufl&ouml;sung (Verh&auml;ltnis ca. 0,95), deshalb hier etwas h&ouml;here Zielmarke
-// als die 1,3 der Endanzeige. Die Best&auml;tigung am Ende l&auml;uft mit voller Aufl&ouml;sung (run()).
-const OPT_MACH=1.38;
+function params(){const q={Rk:+$('RK').value,W:+$('W').value,nStr:+$('NS').value,strick:$('SG').value};const sw=swing(q);return {V:sw.V,sweepT:sw.T,vTip:sw.vTip,nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,Rk:+$('RK').value,tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,W:+$('W').value,A:+$('A').value/100,Z:+$('Z').value,T:+$('T').value,NW:+$('NW').value,tauR:+$('TR').value/1000,S0:+$('S0').value/100};}
+// ================= Beste Technik suchen (wie im Video) =================
+// Sucht unter den Technik-Reglern der durchgehenden Serie (Steckenhaltung, Drehtempo, Umkehrdauer,
+// Nachfuehr-Anteil) die Kombination, die alle Knalle sicher bringt (Mach >= 1,3) und dabei moeglichst
+// wenig Arbeit und vor allem wenig Spitzenkraft kostet -- die Spitzenkraft ist genau der Ruck/das
+// Ueberschwingen beim Umschlagen, das hier staerker gewichtet wird als vorher. Die Goisel selbst
+// (Stricke, Treibschnur, Besen, Wetter) bleibt so, wie der Nutzer sie eingestellt hat.
+// Suche mit gröberem N und nur 2 Schlaegen (schneller, ~0,5-0,8 s je Versuch); dabei zeigt sich die
+// Goisel rechnerisch etwas schwaecher als bei voller Aufloesung (Verhaeltnis ca. 0,79), deshalb hier
+// eine hoehere Zielmarke als die 1,3 der Endanzeige. Die Bestaetigung am Ende laeuft mit voller
+// Aufloesung und allen 4 Schlaegen (run4()).
+const OPT_MACH=1.45;
+function withSwing(p){const sw=swing(p);return {...p,V:sw.V,vTip:sw.vTip,sweepT:sw.T};}
 function optCost(base,tech){
   const full=withSwing({...base,...tech});
-  const r=simulate({...full,N:55,catchT:0,it:6});
-  const M=r.vBesen/r.csound;
-  const E=r.E0+Math.max(0,r.Whand-r.Wcatch);
-  const F=Math.max(r.Fmax,r.FmaxR||0);
+  const S=simulateSeries({...full,N:22,it:5,NH:3});
+  const Ks=S.K.slice(1);
+  const M=Math.min(...Ks.map(q=>q.vBesen/S.csound));
+  const F=Math.max(...Ks.map(q=>q.Fmax));
+  const E=Ks.reduce((a,q)=>a+q.Wp,0)/Ks.length;
   const crack=M>=OPT_MACH;
-  const cost=(crack?0:1000*(OPT_MACH-M)+400)+E+0.06*F;
-  return {cost,crack,M,E,F};
+  // Zwei getrennte Massstaebe: solange nichts sicher knallt, zaehlt nur, wie nah man an der Schwelle ist
+  // (gap); erst unter den sicher knallenden Einstellungen wird nach Aufwand/Kraft (crackCost) sortiert.
+  // Ein Knall mit riesigem Kraftaufwand darf nie "billiger" wirken als ein knapp nicht knallender Versuch.
+  const gap=Math.max(0,OPT_MACH-M);
+  const crackCost=E+0.15*F;
+  return {crack,M,E,F,gap,crackCost};
 }
-function withSwing(p){const sw=swing(p);return {...p,V:sw.V,vTip:sw.vTip,sweepT:sw.T};}
 let OPT_N=0;
 async function optCostY(base,tech){OPT_N++;if(OPT_N%2===0){$('optinfo').textContent='sucht … Versuch '+OPT_N;await new Promise(r=>setTimeout(r));}return optCost(base,tech);}
+// Die Goisel-Dynamik reagiert in der Naehe der Knall-Schwelle chaotisch: eine kleine Aenderung an Drehtempo,
+// Umkehrdauer oder Nachfuehr-Anteil kann den Knall kippen lassen. Eine einfache Schritt-fuer-Schritt-Suche
+// bleibt darin leicht haengen. Deshalb zuerst ein breites Raster testen (das trifft eher eine robuste,
+// nicht nur zufaellig gute Stelle), danach die beste Stelle noch etwas feinjustieren. Dabei zaehlen nur
+// Einstellungen, die im Raster/Nachjustieren sicher knallen -- ein nicht knallender Versuch wird nie als
+// "billiger" angenommen, egal wie klein seine Energie/Kraft ist.
+function better(a,b){ // a besser als b?
+  if(a.crack!==b.crack)return a.crack;
+  if(a.crack)return a.crackCost<b.crackCost-1e-6;
+  return a.gap<b.gap-1e-6;
+}
 async function optimizeOneRk(base,Rk){
-  const specs=[['W',200,1000],['Z',0,20],['A',0.10,0.60],['NW',0,2.5]];
-  // Startwert nach Goiselgewicht skaliert (schwerere Goisel braucht weniger Tempo fuer die gleiche Energie),
-  // damit die Suche nicht erst von einer stark ueberzogenen Anfangsvermutung herunterfinden muss.
   const Mref=0.27, Mgoisel=Math.max(0.05,goiselGeom(base).M), sc=Math.sqrt(Mref/Mgoisel);
-  let p={Rk,W:Math.min(1000,Math.max(250,Math.round(600*sc))),Z:Math.min(20,Math.max(1,6*sc)),A:0.25,NW:1.0};
-  let cur=await optCostY(base,p);
-  if(!cur.crack){p={Rk,W:1000,Z:20,A:0.25,NW:1.0};cur=await optCostY(base,p);if(!cur.crack)return null;}
-  for(let pass=0;pass<3;pass++){
+  const Wmid=Math.min(1000,Math.max(300,Math.round(650*sc)));
+  // Die Massenschaetzung gibt nur einen groben Ausgangspunkt; bei schweren Goiseln braucht es trotzdem
+  // oft ein hohes Drehtempo zum Knallen, darum feste hohe Werte immer mit ins Raster nehmen.
+  const Ws=[...new Set([0.55,0.75,0.9,1.05,1.3,1.6].map(f=>Math.min(1000,Math.max(200,Math.round(Wmid*f)))).concat([700,850,1000]))].sort((a,b)=>a-b);
+  let best=null;
+  for(const W of Ws)for(const tauR of [0.03,0.08])for(const S0 of [0.15,0.3]){
+    const e=await optCostY(base,{Rk,W,tauR,S0});
+    if(!best||better(e,best))best={p:{Rk,W,tauR,S0},...e};
+  }
+  if(!best||!best.crack)return null; // nichts im Raster hat sicher geknallt -- diese Steckenhaltung gibt es auf
+  let p=best.p, cur=best;
+  const specs=[['W',200,1000],['tauR',0.02,0.12],['S0',0.10,0.45]];
+  for(let pass=0;pass<2;pass++){
     let anyImproved=false;
     for(const [key,lo,hi] of specs){
-      let step=(hi-lo)*(pass===0?0.25:pass===1?0.1:0.04);
-      for(let tries=0;tries<3;tries++){
-        let improved=false;
-        for(const dir of [1,-1]){
-          const v=Math.min(hi,Math.max(lo,p[key]+dir*step));
-          if(v===p[key])continue;
-          const cand={...p,[key]:v};
-          const e=await optCostY(base,cand);
-          if(e.crack&&e.cost<cur.cost-1e-6){p=cand;cur=e;improved=true;anyImproved=true;}
-        }
-        if(!improved)break;
+      const step=(hi-lo)*(pass===0?0.08:0.03);
+      for(const dir of [1,-1]){
+        const v=Math.min(hi,Math.max(lo,p[key]+dir*step));
+        if(v===p[key])continue;
+        const cand={...p,[key]:v};
+        const e=await optCostY(base,cand);
+        if(e.crack&&better(e,cur)){p=cand;cur=e;anyImproved=true;}
       }
     }
     if(!anyImproved)break;
@@ -708,23 +734,46 @@ async function optimize(){
   let best=await optimizeOneRk(base,1.4);
   if(tryAlsoSteil||!best){
     const r2=await optimizeOneRk(base,0.7);
-    if(r2&&(!best||r2.cost<best.cost))best=r2;
+    if(r2&&(!best||better(r2,best)))best=r2;
   }
   return best;
+}
+// Die schnelle Suche mit reduzierter Aufloesung ist in der Naehe der Knall-Schwelle etwas unruhig
+// (kann je nach Zufall der Goisel-Dynamik mal zu stark, mal zu schwach wirken); deshalb hier zur
+// Sicherheit nochmal mit voller Aufloesung nachpruefen und, falls es nicht reicht, das Drehtempo
+// schrittweise erhoehen, bis wirklich alle vier Knalle sicher kommen.
+async function verifyAndFix(base,p){
+  for(let tries=0;tries<5;tries++){
+    $('optinfo').textContent='prüft Ergebnis …';await new Promise(r=>setTimeout(r));
+    const full=withSwing({...base,...p});
+    const S=simulateSeries(full);
+    const Ks=S.K.slice(1);
+    const M=Math.min(...Ks.map(q=>q.vBesen/S.csound));
+    if(M>=1.3||p.W>=1000)return {p,M,S};
+    p={...p,W:Math.min(1000,p.W+80)};
+  }
+  return {p,M:0,S:null};
 }
 async function runOpt(){
   $('opt').disabled=true;$('opt').textContent='sucht …';$('optinfo').textContent='sucht …';
   await new Promise(r=>setTimeout(r,30));
+  const base={nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,
+    tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,
+    fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,T:+$('T').value};
   const best=await optimize();
   if(!best){$('optinfo').innerHTML='<b style="color:#c21807">Keine Einstellung gefunden, die sicher knallt.</b> Vielleicht ist die Goisel zu schwer oder zu steif daf&uuml;r.';}
   else{
-    $('RK').value=String(best.p.Rk);$('W').value=Math.round(best.p.W/10)*10;$('A').value=Math.round(best.p.A*100/5)*5;
-    $('Z').value=Math.round(best.p.Z/0.5)*0.5;$('NW').value=Math.round(best.p.NW/0.05)*0.05;
+    const checked=await verifyAndFix(base,best.p);
+    $('RK').value=String(checked.p.Rk);$('W').value=Math.round(checked.p.W/10)*10;
+    $('TR').value=Math.round(checked.p.tauR*1000/5)*5;$('S0').value=Math.round(checked.p.S0*100/5)*5;
     labels();
-    $('optinfo').innerHTML='<b style="color:#2f6f3e">Gefunden:</b> '+($('RK').value==='1.4'?'flach':'steil')+', Drehtempo '+Math.round(best.p.W)+'&nbsp;°/s, Schlaufe '+Math.round(best.p.A*100)+'&nbsp;cm, Zur&uuml;ckziehen '+fmt(best.p.Z,1)+'&nbsp;m/s, Nachf&uuml;hren '+Math.round(best.p.NW*100)+'&nbsp;cm &ndash; Mach '+fmt(best.M,2)+'.';
-    run();
+    if(checked.M<1.3){$('optinfo').innerHTML='<b style="color:#c21807">Keine zuverl&auml;ssige Einstellung gefunden.</b> Die Goisel ist vermutlich zu schwer oder zu steif, um sie sicher zum Knallen zu bringen.';}
+    else{
+      $('optinfo').innerHTML='<b style="color:#2f6f3e">Gefunden:</b> '+($('RK').value==='1.4'?'flach':'steil')+', Drehtempo '+Math.round(checked.p.W)+'&nbsp;°/s, Umkehr '+Math.round(checked.p.tauR*1000)+'&nbsp;ms, Nachf&uuml;hr-Anteil '+Math.round(checked.p.S0*100)+'&nbsp;% &ndash; sicherer Knall, geringes &Uuml;berschwingen.';
+      S=checked.S;window.__S=S;setMode('four');showSeries();playSeries();
+    }
   }
-  $('opt').disabled=false;$('opt').textContent='Beste Einstellung suchen';
+  $('opt').disabled=false;$('opt').textContent='Beste Technik suchen (wie im Video)';
 }
 $('opt').addEventListener('click',runOpt);
 function run4(){
