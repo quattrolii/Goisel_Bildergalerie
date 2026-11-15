@@ -723,6 +723,29 @@ async function optimizeOneRk(base,Rk){
   }
   return {p,...cur};
 }
+// Vorab durchgerechnete beste Technik fuer den haeufigsten Fall (keine Knoten, Rundschnur als Treibschnur,
+// Flechtart/Schmierung/Wetter auf Standard): Durchmesser und Material der Treibschnur sind dabei selbst
+// Teil der Suche (duennere Schnur = weniger Luftwiderstand, aber bei schwereren Goiseln reicht sie nicht
+// immer zum sicheren Knallen) -- deshalb hier fest hinterlegt statt als eigener Regler. Passt die aktuelle
+// Einstellung zu diesem Standardfall, zeigt der Button das Ergebnis sofort statt neu zu suchen.
+const OPT_TABLE={
+  normal_2:{tsD:1,tsMat:'dyneema',Rk:1.4,W:885,tauR:38,S0:15},
+  normal_3:{tsD:1,tsMat:'dyneema',Rk:1.4,W:700,tauR:30,S0:30},
+  normal_4:{tsD:1,tsMat:'dyneema',Rk:1.4,W:665,tauR:80,S0:30},
+  normal_5:{tsD:1,tsMat:'dyneema',Rk:1.4,W:526,tauR:25,S0:18},
+  mittel_3:{tsD:1,tsMat:'dyneema',Rk:1.4,W:993,tauR:80,S0:30},
+  mittel_4:{tsD:2,tsMat:'dyneema',Rk:1.4,W:1000,tauR:80,S0:15},
+  schwer_5:{tsD:2,tsMat:'dyneema',Rk:1.4,W:1000,tauR:30,S0:15},
+  schwer_6:{tsD:1,tsMat:'dyneema',Rk:1.4,W:640,tauR:80,S0:30},
+  schwer_7:{tsD:1,tsMat:'dyneema',Rk:1.4,W:720,tauR:80,S0:27},
+  // mittel_5 und schwer_4 knallen in diesem Standardfall bei keinem getesteten Treibschnur-Durchmesser
+  // (1/1,5/2/3 mm) zuverlaessig -- fuer die laeuft weiter die Live-Suche.
+};
+function optTableKey(){return $('SG').value+'_'+$('NS').value;}
+function optBaselineMatches(){
+  return $('KN').value==='keine'&&$('ts').value==='rund'&&+$('TB').value===10&&+$('TL').value===0.2&&
+    +$('FL').value===5&&+$('K').value===0.6&&+$('S').value===0.0008&&+$('T').value===10&&$('ST').value==='treppe';
+}
 async function optimize(){
   OPT_N=0;
   const base={nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,
@@ -757,6 +780,19 @@ async function verifyAndFix(base,p){
 async function runOpt(){
   $('opt').disabled=true;$('opt').textContent='sucht …';$('optinfo').textContent='sucht …';
   await new Promise(r=>setTimeout(r,30));
+  const hit=optBaselineMatches()?OPT_TABLE[optTableKey()]:null;
+  if(hit){
+    $('TD').value=String(hit.tsD);$('TM').value=hit.tsMat;
+    $('RK').value=String(hit.Rk);$('W').value=hit.W;$('TR').value=hit.tauR;$('S0').value=hit.S0;
+    labels();
+    $('optinfo').innerHTML='<b style="color:#2f6f3e">Gefunden (vorab berechnet):</b> '+(hit.Rk===1.4?'flach':'steil')+', Treibschnur '+hit.tsD+'&nbsp;mm '+(hit.tsMat==='vectran'?'Vectran':'Dyneema')+', Drehtempo '+hit.W+'&nbsp;°/s, Umkehr '+hit.tauR+'&nbsp;ms, Nachf&uuml;hr-Anteil '+hit.S0+'&nbsp;% &ndash; sicherer Knall, geringes &Uuml;berschwingen.';
+    const full=withSwing({...{nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,
+      tsType:$('ts').value,tsL:+$('TL').value,tsD:hit.tsD,tsMat:hit.tsMat,tsB:+$('TB').value,
+      fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,T:+$('T').value},Rk:hit.Rk,W:hit.W,tauR:hit.tauR/1000,S0:hit.S0/100});
+    S=simulateSeries(full);window.__S=S;setMode('four');showSeries();playSeries();
+    $('opt').disabled=false;$('opt').textContent='Beste Technik suchen (wie im Video)';
+    return;
+  }
   const base={nStr:+$('NS').value,strick:$('SG').value,form:$('ST').value,knoten:$('KN').value,
     tsType:$('ts').value,tsL:+$('TL').value,tsD:+$('TD').value,tsMat:$('TM').value,tsB:+$('TB').value,
     fray:+$('FL').value/100,K:+$('K').value,S:+$('S').value,T:+$('T').value};
